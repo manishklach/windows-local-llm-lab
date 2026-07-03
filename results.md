@@ -97,6 +97,19 @@ Takeaway:
 - unlike the earlier `qwen35-4b-q4km` baseline, `IQ4_XS` clearly prefers `12` threads on this laptop in the tested `1024/64/128` cell
 - this is the best Qwen-specific thread tuning result measured so far in the current repo session
 
+#### Qwen3.5-4B IQ4_XS at 2048 context
+
+Benchmarked at the standard `12` threads, `2048` ctx, `128` batch, `128` gen tokens:
+
+| Metric | Value |
+| --- | --- |
+| Median eval tok/s | `7.64` |
+| Avg eval tok/s | `7.62` |
+| Std dev | `0.11` |
+| Load time | `~5.6 s` |
+
+Takeaway: At `2048` context and `128` batch, IQ4_XS reaches `7.64` tok/s — an improvement from the earlier `6.90` at `1024/64`. The larger batch size (+100%) more than compensates for the doubled context length.
+
 Short safe Gemma comparison using the newer harness and longer `64` token decode runs:
 
 | Model | Threads | NumCtx | NumBatch | Median eval tok/s | Avg eval tok/s | Std dev | Notes |
@@ -216,6 +229,32 @@ Thread tuning revealed phi3:mini has a **completely different optimal thread cou
 
 Takeaway: `phi3:mini` at **6 threads** reaches `13.64` tok/s — only ~12% behind `gemma:2b` but with 1.9x the parameters. This is the best quality/speed tradeoff measured so far on this laptop.
 
+#### phi3:mini batch sweep (6 threads, 2048 ctx)
+
+Follow-up batch sweep at the optimal **6 threads**, **2048 context**, and **128 generated tokens**:
+
+| Batch | Median eval tok/s | Avg eval tok/s | Std dev | Variance % |
+| --- | --- | --- | --- | --- |
+| `64` | `9.29` | `9.22` | `0.22` | `2.33` |
+| `128` | `9.23` | `9.24` | `0.20` | `2.15` |
+| `256` | `9.31` | `9.30` | `0.04` | `0.48` |
+| `512` | `9.22` | `9.20` | `0.08` | `0.85` |
+
+Takeaway: Batch size has minimal impact on phi3:mini — all cells cluster within 1% of `9.2-9.3` tok/s. **Batch 256** edges ahead with the lowest variance (`0.48%`). The absolute tok/s is lower than the `13.64` thread sweep because a longer prompt context (`2048` vs `1024`) and different cooldown timing shift the baseline, but the relative comparison across batches is valid.
+
+### gemma2:2b (Google, 2B params, 1.6 GB)
+
+Initial benchmark at `12` threads, `2048` ctx, `128` batch, `128` gen tokens:
+
+| Metric | Value |
+| --- | --- |
+| Median eval tok/s | `13.65` |
+| Avg eval tok/s | `13.61` |
+| Std dev | `0.10` |
+| Load time | `~3.25 s` |
+
+Takeaway: `gemma2:2b` reaches `13.65` tok/s — about **15% behind `gemma:2b`** (`15.54`). This is expected since Gemma 2 is a more capable architecture (deeper, more attention heads) at the same 2B parameter count. Very stable across runs (stddev `0.10`).
+
 ### llama3.2:3b (Meta, 3B params, ~2.0 GB)
 
 Initial benchmark at the best known Gemma config (`12` threads, `2048` ctx, `128` batch, `128` gen tokens):
@@ -268,12 +307,16 @@ Note: This sweep showed atypically high variance across all cells (thermal build
 ## Best known safe config
 
 - Runtime: native Windows with Ollama
-- Fastest compact throughput model: `gemma:2b`
+- Fastest compact throughput model: `gemma:2b` (`15.54` tok/s)
+- Best quality/speed tradeoff: `phi3:mini` at 6 threads (`13.64` tok/s, 3.8B params)
+- Runner-up: `gemma2:2b` (`13.65` tok/s, same 2B params but more capable than gemma:2b)
 - Reference comparison model: `qwen35-4b-q4km`
 - Threads: `12` currently leads for `gemma:2b`; `16` and `32` did not help on this `4C/8T` machine
 - Threads for `IQ4_XS` Qwen: `12` also leads (unlike the older `q4km` reference which preferred `6`)
+- phi3:mini optimal threads: `6` (not 12 — proves tuning is model-specific)
 - Gemma context: `2048` currently leads, with `4096` nearly tied
 - Gemma batch: `128` wins on stability; `64` ties on throughput
+- phi3:mini batch: batch `256` edges ahead at `9.31` tok/s; batch size has minimal impact
 - Power mode: `High performance`
 - AC processor min and max: `100%`
 - Ollama priority: `High`
@@ -287,17 +330,20 @@ Current measured throughput ranking from fastest to slowest on this laptop (Olla
 | --- | --- | --- | --- | --- | --- |
 | 1 | `gemma:2b` | 2B | 1.7 GB | `15.54` | 12 threads, 2048 ctx, 128 batch |
 | 2 | `gemma:2b` (WSL) | 2B | 1.7 GB | `15.77` | WSL2 → Windows Ollama, 12 threads |
-| 3 | `phi3:mini` | 3.8B | 2.3 GB | `13.64` | **6 threads**, 2048 ctx, 128 batch |
-| 4 | `llama3.2:3b` | 3B | 2.0 GB | `13.52` | 12 threads, 2048 ctx, 128 batch |
-| 5 | `nemotron-mini:4b` | 4B | 2.7 GB | `8.84` | **8 threads**, 2048 ctx, 128 batch |
-| 6 | `qwen35-4b-q4km` | 4B | 2.7 GB | `7.62` | 6 threads, 1024 ctx, 64 batch |
-| 7 | `hf.co/.../IQ4_XS` | 4B | 3.1 GB | `6.90` | 12 threads, 1024 ctx, 64 batch |
-| 8 | `llama.cpp` CPU | 4B | 2.7 GB | `6.12` | 8 threads, direct CPU |
-| 9 | `glm4:9b` | 9B | 5.5 GB | `4.30` | 12 threads, 2048 ctx, 128 batch |
+| 3 | `gemma2:2b` | 2B | 1.6 GB | `13.65` | 12 threads, 2048 ctx, 128 batch |
+| 4 | `phi3:mini` | 3.8B | 2.3 GB | `13.64` | **6 threads**, 2048 ctx, 128 batch |
+| 5 | `llama3.2:3b` | 3B | 2.0 GB | `13.52` | 12 threads, 2048 ctx, 128 batch |
+| 6 | `nemotron-mini:4b` | 4B | 2.7 GB | `8.84` | **8 threads**, 2048 ctx, 128 batch |
+| 7 | `qwen35-4b-q4km` | 4B | 2.7 GB | `7.62` | 6 threads, 1024 ctx, 64 batch |
+| 8 | `hf.co/.../IQ4_XS` | 4B | 3.1 GB | `7.64` | 12 threads, 2048 ctx, 128 batch |
+| 9 | `llama.cpp` CPU | 4B | 2.7 GB | `6.12` | 8 threads, direct CPU |
+| 10 | `glm4:9b` | 9B | 5.5 GB | `4.30` | 12 threads, 2048 ctx, 128 batch |
 
 Key insights:
-- **Model architecture beats thread tuning.** The optimal thread count varies per model: gemma (`12`), phi3 (`6`), nemotron (`8`). Always sweep threads per model.
-- **`phi3:mini` at 6 threads** is the standout find: only ~12% slower than `gemma:2b` but with 1.9x the parameters. This is the best quality/speed tradeoff tested so far.
+- **Model architecture beats thread tuning.** The optimal thread count varies per model: gemma (`12`), gemma2 (`12`), phi3 (`6`), nemotron (`8`). Always sweep threads per model.
+- **`phi3:mini` at 6 threads** is the quality/speed sweet spot: only ~12% behind `gemma:2b` with 1.9x the parameters.
+- **`gemma2:2b` ties `phi3:mini`** on throughput (`13.65` vs `13.64` tok/s) — offers a more capable architecture at the same speed.
+- **Batch size is model-dependent** — gemma:2b benefits from batch `128` for stability; phi3:mini is nearly batch-agnostic (`9.2-9.3` tok/s across 64-512).
 - **`nemotron-mini:4b` improved 35%** by switching from 12 to 8 threads (6.53 → 8.84 tok/s), showing how critical model-specific tuning is.
 - **`glm4:9b`** is solid but memory-bandwidth-bound on this laptop. Its 5.5 GB size saturates the memory channel.
 
@@ -307,6 +353,22 @@ Key insights:
 - `Nemotron` (tested: `nemotron-mini:4b` at `6.53` tok/s — slower than gemma), `Kimi`, `MiniMax`, and alternate `Qwen` variants are reasonable next comparisons if they fit cleanly in `16 GB` RAM.
 - `Phi-3` or `Phi-4` compact models from Microsoft are worth testing — they may offer a better quality/speed tradeoff than the tested models.
 - Newer `qwen3.5` or `qwen4` compact variants (e.g., `qwen3.5:0.6b`, `qwen3.5:1.7b`, `qwen3.5:4b`) could offer better throughput than the current `qwen35-4b-q4km` reference.
+
+## Codex OSS smoke test
+
+Quick integration check running Codex CLI in `--oss` mode against local Ollama models:
+
+| Model | Result | Response time | Notes |
+| --- | --- | --- | --- |
+| `mistral:latest` | Success | `~200 s` | Generated valid Python hello-world plan (2051 in / 76 out tokens) |
+| `phi3:mini` | Failed | `~2.5 s` | Ollama API returned "does not support tools" — Codex requires tool calling |
+| `codex-airgap-demo` | Failed | `~2.5 s` | Codex tried to pull the model instead of using local copy; "file does not exist" |
+
+Takeaway:
+- Tool-calling support is required for Codex OSS. Small models like `phi3:mini` and `gemma:2b` may not expose tool calls in Ollama.
+- `mistral:latest` (4.4 GB) works but is slow (~200s for a trivial prompt) — model metadata loading adds overhead ("Model metadata not found" warning).
+- The `codex-airgap-demo` modelfile-based model has a naming/resolution issue with Codex's model lookup.
+- For a responsive Codex OSS experience, a tool-capable model under ~4 GB that loads quickly would be ideal.
 
 ## Risky / not recommended
 
