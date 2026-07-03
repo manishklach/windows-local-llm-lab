@@ -37,6 +37,47 @@ Using the same short generation length:
 
 The first easy win on this laptop was setting `num_thread=8`, which improved generation throughput from `5.21 tok/s` to `6.86 tok/s`, about a `32%` increase over the initial baseline.
 
+## Safe Runtime/System Tuning
+
+### Session Tuning Applied
+
+- switched from `Balanced` to `High performance`
+- set AC minimum processor state to `100%`
+- kept AC maximum processor state at `100%`
+- raised `ollama.exe` priority from `Normal` to `High`
+- stopped background model pulls before benchmarking
+
+### Tuned Single-Model Check
+
+Using the same `Q4_K_M` model with `8` threads and `16` generated tokens:
+
+| Metric | Before tuning | After tuning |
+| --- | --- | --- |
+| Prompt tok/s | `18.86` | `19.79` |
+| Gen tok/s | `6.78` | `6.76` |
+| Load time | `13.42 s` | `7.85 s` |
+| Total time | `17.17 s` | `11.54 s` |
+
+### Tuned Thread Sweep
+
+Short polite run with `16` generated tokens:
+
+| Threads | Prompt tok/s | Gen tok/s | Load time | Total time |
+| --- | --- | --- | --- | --- |
+| `8` | `20.73` | `6.87` | `7.00 s` | `10.59 s` |
+| `7` | `18.83` | `6.54` | `7.03 s` | `10.86 s` |
+| `6` | `17.48` | `5.99` | `7.52 s` | `11.68 s` |
+
+### Takeaway
+
+Safe Windows/session tuning did **not** materially increase generation throughput on this laptop by itself, but it did make the benchmark loop much healthier:
+
+- much faster load time
+- lower total time per short run
+- fewer background conflicts
+
+For raw generation speed, `8` threads is still the best setting among the tuned runs so far.
+
 ## Notes
 
 - The earlier attempt to use a much larger GLM-family model on this laptop was not practical for local inference.

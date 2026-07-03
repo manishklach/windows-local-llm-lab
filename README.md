@@ -56,6 +56,7 @@ See [results.md](./results.md) for the baseline and first tuning pass.
 
 ## Next Experiments
 
+- apply safe Windows session tuning before benchmarks
 - compare `Q4_K_M` vs `Q3_K_M`
 - sweep `num_thread`
 - test longer prompts and longer generations
