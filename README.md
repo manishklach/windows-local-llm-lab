@@ -12,7 +12,7 @@ On this laptop, the fastest proven safe runtime path is still `native Windows + 
 - fastest compact model measured so far: `gemma:2b` at about `16.00` median eval tok/s with `12` threads, `2048` context, `128` batch, and `64` generated tokens
 - direct `llama.cpp` CPU at `8` threads reached about `6.12` gen tok/s
 - direct `llama.cpp` CPU at `10` threads dropped to about `5.47` gen tok/s
-- WSL is installed, but the current Windows Ollama endpoint is not reachable from WSL yet
+- WSL now has a first valid comparison path through the controlled bridge experiment, with `gemma:2b` reaching about `15.77` median eval tok/s at `12` threads
 - Vulkan is not ready yet because `llama-bench` currently sees no available device on this Windows setup
 
 ## Repo contents
@@ -155,7 +155,9 @@ Measured takeaway so far:
 
 - WSL itself is healthy on this machine
 - with the controlled bridge enabled and the explicit endpoint `http://172.26.208.1:11434`, `gemma:2b` reached about `15.77` median eval tok/s from `WSL2` at `12` threads, `2048` context, `128` batch, and `64` generated tokens
-- that is very close to the current native Windows short-sample Gemma best of about `16.00` eval tok/s on the same laptop
+- boosting WSL threads beyond `12` did not help: `16` threads landed around `14.98`, and `32` threads dropped to about `12.75`
+- the WSL winner is very close to the current native Windows short-sample Gemma best of about `16.00` eval tok/s on the same laptop
+- the tracked WSL snapshot lives in [docs/wsl-results-2026-07-03.md](./docs/wsl-results-2026-07-03.md)
 
 Compare the native Windows CSV against the WSL CSV:
 
