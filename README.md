@@ -6,9 +6,10 @@ The stable baseline in this repo is native Windows plus Ollama. The goal is to i
 
 ## Current conclusion
 
-On this laptop, the fastest proven safe path is still `native Windows + Ollama + qwen35-4b-q4km`.
+On this laptop, the fastest proven safe runtime path is still `native Windows + Ollama`.
 
 - best validated safe Ollama sweep cell so far: about `7.62` median eval tok/s at `6` threads, `1024` context, `64` batch
+- fastest compact model measured so far: `gemma:2b` at about `15.35` median eval tok/s with `10` threads, `2048` context, `128` batch, and `64` generated tokens
 - direct `llama.cpp` CPU at `8` threads reached about `6.12` gen tok/s
 - direct `llama.cpp` CPU at `10` threads dropped to about `5.47` gen tok/s
 - WSL is installed, but the current Windows Ollama endpoint is not reachable from WSL yet
@@ -24,9 +25,10 @@ On this laptop, the fastest proven safe path is still `native Windows + Ollama +
 
 ## Current model coverage
 
-- current reference model: `qwen35-4b-q4km`
+- current quality-oriented reference model: `qwen35-4b-q4km`
+- fastest compact model measured so far: `gemma:2b`
 - additional tested quant: `qwen35-4b-udiq2m`
-- next logical model candidates for this laptop: small `Gemma` variants, then other compact `4B`-class models
+- next logical model candidates for this laptop: newer small `Gemma` variants, then compact `Nemotron`, `Kimi`, `MiniMax`, or `Qwen` alternatives that fit comfortably in `16 GB` RAM
 
 ## Machine used so far
 
@@ -101,6 +103,22 @@ Measured takeaway so far:
 - use `8` threads, not `10`, for generation on this `4C/8T` CPU
 - current direct `llama.cpp` CPU numbers do not beat the better Ollama numbers on this machine
 - Vulkan still needs backend/device visibility fixed before it can be tested honestly
+
+## Gemma measurement
+
+Safe `gemma:2b` checks on the same laptop with `64` generated tokens, `2048` context, and `128` batch:
+
+| Model | Threads | Median eval tok/s | Avg eval tok/s | Std dev | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `gemma:2b` | `6` | `14.05` | `14.05` | `0.97` | higher variance on the short two-run sample |
+| `gemma:2b` | `8` | `14.78` | `14.78` | `0.03` | very stable |
+| `gemma:2b` | `10` | `15.35` | `15.35` | `0.29` | best short Gemma result so far |
+
+Measured takeaway so far:
+
+- `gemma:2b` is much faster than the current `qwen35-4b-q4km` baseline on this laptop for decode throughput
+- unlike the direct `llama.cpp` Qwen CPU test, `10` threads slightly beat `8` threads for this smaller Gemma model
+- this is a throughput result, not a quality ranking; `qwen35-4b-q4km` remains the current reference model in this repo for broader comparisons
 
 ## WSL comparison track
 

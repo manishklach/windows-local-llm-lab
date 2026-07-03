@@ -68,6 +68,20 @@ Short direct comparison on this laptop for the current `Qwen3.5-4B` reference fa
 | `qwen35-4b-q4km:latest` | `18.45` | `6.81` | `8.47` | `12.23` | current best local choice |
 | `qwen35-4b-udiq2m:latest` | `7.16` | `4.88` | `5.22` | `12.03` | smaller quant was slower here |
 
+Short safe Gemma comparison using the newer harness and longer `64` token decode runs:
+
+| Model | Threads | NumCtx | NumBatch | Median eval tok/s | Avg eval tok/s | Std dev | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `gemma:2b` | `6` | `2048` | `128` | `14.05` | `14.05` | `0.97` | short two-run sample, more variance |
+| `gemma:2b` | `8` | `2048` | `128` | `14.78` | `14.78` | `0.03` | very stable short sample |
+| `gemma:2b` | `10` | `2048` | `128` | `15.35` | `15.35` | `0.29` | best short Gemma result so far |
+
+Takeaway:
+
+- `gemma:2b` is the fastest compact model measured so far on this laptop.
+- On Gemma, `10` threads slightly beat `8`, which is a different pattern from the direct `llama.cpp` Qwen CPU run.
+- This is a throughput finding only; it does not mean `gemma:2b` is the best overall quality model.
+
 ## llama.cpp direct benchmark
 
 Direct `llama-bench` CPU results on `qwen35-4b-q4km.gguf`:
@@ -112,8 +126,9 @@ Conclusion:
 ## Best known safe config
 
 - Runtime: native Windows with Ollama
-- Model: `qwen35-4b-q4km` as the current best-tested reference model
-- Threads: `6-8` depending on workload, with `6` currently best in the validated safe sweep and `8` still a strong default
+- Fastest compact throughput model: `gemma:2b`
+- Reference comparison model: `qwen35-4b-q4km`
+- Threads: `10` currently leads for `gemma:2b` in the short safe sample, while `6-8` remains the better tested range for `qwen35-4b-q4km`
 - Power mode: `High performance`
 - AC processor min and max: `100%`
 - Ollama priority: `High`
@@ -121,8 +136,8 @@ Conclusion:
 
 ## Next model candidates
 
-- `Gemma` small variants are the next recommended family to test on this laptop.
-- `Nemotron` is lower priority here unless a compact variant shows a clear reason to compare.
+- `gemma4` compact variants are worth testing next, but only if their pull size stays reasonable for this laptop.
+- compact `Nemotron`, `Kimi`, `MiniMax`, and alternate `Qwen` variants are reasonable next comparisons if they fit cleanly in `16 GB` RAM.
 
 ## Risky / not recommended
 
