@@ -131,6 +131,53 @@ powershell -ExecutionPolicy Bypass -File .\tools\preflight-llm-benchmark.ps1 -Re
 powershell -ExecutionPolicy Bypass -File .\measure-ollama-tps-safe.ps1 -Model hf.co/unsloth/Qwen3.5-4B-GGUF:IQ4_XS -Runs 3 -WarmupRuns 1 -NumPredict 128 -NumThread 12 -NumCtx 1024 -NumBatch 64
 ```
 
+## Codex with Ollama
+
+If you want to use local Codex against a model served by Ollama, the supported path is `Codex CLI` or the `Codex IDE extension` in local OSS mode.
+
+Basic flow:
+
+1. Make sure Ollama is running.
+2. Pull a local model.
+3. Start Codex in OSS mode.
+
+Example:
+
+```powershell
+ollama pull hf.co/unsloth/Qwen3.5-4B-GGUF:IQ4_XS
+codex --oss
+```
+
+Optional persistent Codex config in `~/.codex/config.toml`:
+
+```toml
+model_provider = "oss"
+oss_provider = "ollama"
+```
+
+Useful smoke test:
+
+```powershell
+codex --oss "Summarize this repository and suggest one small performance experiment."
+```
+
+What to measure:
+
+- whether local Codex feels responsive for coding tasks
+- whether tool use, file edits, and repo summarization work reliably with the chosen local model
+- whether a given model is usable for your coding workflow at acceptable latency
+
+What not to compare directly:
+
+- do not treat Codex session responsiveness as the same metric as raw Ollama `eval tok/s`
+- Codex adds agent-loop overhead, prompt scaffolding, tool orchestration, filesystem actions, and UI/runtime latency
+- use this repo's benchmark scripts for raw model throughput, and use Codex OSS mode for workflow usability testing
+
+Practical recommendation:
+
+- benchmark raw model speed with `measure-ollama-tps-safe.ps1`, `compare-models-safe.ps1`, and `sweep-ollama-options-safe.ps1`
+- separately smoke-test `codex --oss` with the same local model to decide whether the model is good enough for real coding help
+
 ## Model setup example
 
 The current reference baseline in this repo uses `qwen35-4b-q4km`, but the benchmark scripts are generic and can be pointed at any local Ollama model or GGUF path.
