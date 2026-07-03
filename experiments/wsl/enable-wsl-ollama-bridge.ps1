@@ -53,7 +53,16 @@ function Get-WslFirewallRemoteAddresses {
         [switch]$AllowFallback
     )
 
-    $addresses = @(Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias 'vEthernet (WSL)' -ErrorAction SilentlyContinue)
+    $wslAliases = @(
+        Get-NetAdapter -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -like 'vEthernet (WSL*' -or $_.InterfaceDescription -like '*WSL*' } |
+            Select-Object -ExpandProperty Name -Unique
+    )
+
+    $addresses = foreach ($alias in $wslAliases) {
+        Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias $alias -ErrorAction SilentlyContinue
+    }
+
     if ($addresses.Count -gt 0) {
         return @(
             $addresses |
@@ -64,11 +73,11 @@ function Get-WslFirewallRemoteAddresses {
     }
 
     if ($AllowFallback) {
-        Write-Warning 'Could not detect the vEthernet (WSL) subnet. Falling back to LocalSubnet, which is broader than WSL-only.'
+        Write-Warning 'Could not detect a WSL virtual Ethernet subnet. Falling back to LocalSubnet, which is broader than WSL-only.'
         return @('LocalSubnet')
     }
 
-    throw "Could not detect the 'vEthernet (WSL)' subnet. Start WSL once or pass -AllowLocalSubnetFallback for a broader, less strict firewall scope."
+    throw "Could not detect a WSL virtual Ethernet subnet. Start WSL once or pass -AllowLocalSubnetFallback for a broader, less strict firewall scope."
 }
 
 if (-not (Test-IsAdministrator)) {
