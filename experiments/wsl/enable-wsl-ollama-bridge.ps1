@@ -59,14 +59,16 @@ function Get-WslFirewallRemoteAddresses {
             Select-Object -ExpandProperty Name -Unique
     )
 
-    $addresses = foreach ($alias in $wslAliases) {
-        Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias $alias -ErrorAction SilentlyContinue
-    }
+    $addresses = @(
+        foreach ($alias in $wslAliases) {
+            Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias $alias -ErrorAction SilentlyContinue
+        }
+    )
 
     if ($addresses.Count -gt 0) {
         return @(
             $addresses |
-                Where-Object { $_.PrefixLength -ge 1 } |
+                Where-Object { $null -ne $_ -and $_.PrefixLength -ge 1 } |
                 ForEach-Object { ConvertTo-Ipv4NetworkCidr -IpAddress $_.IPAddress -PrefixLength $_.PrefixLength } |
                 Sort-Object -Unique
         )
