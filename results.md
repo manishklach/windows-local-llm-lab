@@ -1,84 +1,87 @@
 # Results
 
-## Baseline Session
-
-Date: `2026-07-03`
-
-### Hardware Snapshot
+## Machine
 
 - CPU: `AMD Ryzen 3 5300U`
-- Cores / threads: `4 / 8`
-- RAM: about `16 GB`
+- RAM: `16 GB`
 - GPU: integrated `AMD Radeon Graphics`
+- Windows version: `Windows 11 Home Single Language 10.0.26200`
+- Ollama version: `0.30.11`
+- Power mode: `High performance` for current tuned runs
+- AC plugged in: `Yes`
+- Model: `qwen35-4b-q4km`
 
-### Vanilla Windows Baseline
+## Stable baseline
 
-Short single-pass benchmark with `32` generated tokens:
+Short earlier baseline with `32` generated tokens:
 
-| Metric | Value |
-| --- | --- |
-| Prompt tokens | `33` |
-| Prompt tok/s | `12.89` |
-| Generated tokens | `32` |
-| Gen tok/s | `5.21` |
-| Load time | `7.78 s` |
-| Total time | `16.55 s` |
+| Scenario | Threads | Prompt tok/s | Gen tok/s | Load seconds | Total seconds |
+| --- | --- | --- | --- | --- | --- |
+| Vanilla Windows baseline | `default` | `12.89` | `5.21` | `7.78` | `16.55` |
 
-### First Thread Tuning Pass
+## Max-performance profile
 
-Using the same short generation length:
-
-| Threads | Prompt tok/s | Gen tok/s | Load time | Total time |
-| --- | --- | --- | --- | --- |
-| `4` | `15.31` | `5.56` | `7.83 s` | `15.79 s` |
-| `8` | `23.24` | `6.86` | `7.19 s` | `13.36 s` |
-
-### Takeaway
-
-The first easy win on this laptop was setting `num_thread=8`, which improved generation throughput from `5.21 tok/s` to `6.86 tok/s`, about a `32%` increase over the initial baseline.
-
-## Safe Runtime/System Tuning
-
-### Session Tuning Applied
+Safe tuning so far:
 
 - switched from `Balanced` to `High performance`
-- set AC minimum processor state to `100%`
-- kept AC maximum processor state at `100%`
-- raised `ollama.exe` priority from `Normal` to `High`
+- set AC processor min and max to `100%`
+- preferred active cooling when available
+- raised `ollama.exe` priority to `High`
 - stopped background model pulls before benchmarking
 
-### Tuned Single-Model Check
+Short tuned check with `16` generated tokens:
 
-Using the same `Q4_K_M` model with `8` threads and `16` generated tokens:
+| Scenario | Threads | Prompt tok/s | Gen tok/s | Load seconds | Total seconds |
+| --- | --- | --- | --- | --- | --- |
+| Tuned Windows session | `8` | `19.79` | `6.76` | `7.85` | `11.54` |
 
-| Metric | Before tuning | After tuning |
-| --- | --- | --- |
-| Prompt tok/s | `18.86` | `19.79` |
-| Gen tok/s | `6.78` | `6.76` |
-| Load time | `13.42 s` | `7.85 s` |
-| Total time | `17.17 s` | `11.54 s` |
+## Thread sweep
 
-### Tuned Thread Sweep
+| Threads | Prompt tok/s | Gen tok/s | Load seconds | Total seconds | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `4` | `15.31` | `5.56` | `7.83` | `15.79` | earlier baseline sweep |
+| `6` | `17.48` | `5.99` | `7.52` | `11.68` | tuned short polite run |
+| `7` | `18.83` | `6.54` | `7.03` | `10.86` | tuned short polite run |
+| `8` | `23.24` | `6.86` | `7.19` | `13.36` | best short baseline sweep |
+| `8` | `20.73` | `6.87` | `7.00` | `10.59` | best tuned short polite run |
 
-Short polite run with `16` generated tokens:
+## Context length sweep
 
-| Threads | Prompt tok/s | Gen tok/s | Load time | Total time |
-| --- | --- | --- | --- | --- |
-| `8` | `20.73` | `6.87` | `7.00 s` | `10.59 s` |
-| `7` | `18.83` | `6.54` | `7.03 s` | `10.86 s` |
-| `6` | `17.48` | `5.99` | `7.52 s` | `11.68 s` |
+Pending. Use `.\compare-context-length.ps1` and log timestamped outputs from `results-local`.
 
-### Takeaway
+## Batch sweep
 
-Safe Windows/session tuning did **not** materially increase generation throughput on this laptop by itself, but it did make the benchmark loop much healthier:
+Pending. Use `.\sweep-ollama-options-safe.ps1` and capture the top median and stability-adjusted configs here.
 
-- much faster load time
-- lower total time per short run
-- fewer background conflicts
+## Model / quant comparison
 
-For raw generation speed, `8` threads is still the best setting among the tuned runs so far.
+Short direct comparison on this laptop:
 
-## Notes
+| Model | Prompt tok/s | Gen tok/s | Load seconds | Total seconds | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `qwen35-4b-q4km:latest` | `18.45` | `6.81` | `8.47` | `12.23` | current best local choice |
+| `qwen35-4b-udiq2m:latest` | `7.16` | `4.88` | `5.22` | `12.03` | smaller quant was slower here |
 
-- The earlier attempt to use a much larger GLM-family model on this laptop was not practical for local inference.
-- A large failed Ollama partial download was left in the local blob cache and should be cleaned up before more storage-heavy experiments.
+## Best known safe config
+
+- Runtime: native Windows with Ollama
+- Model: `qwen35-4b-q4km`
+- Threads: `8`
+- Power mode: `High performance`
+- AC processor min and max: `100%`
+- Ollama priority: `High`
+- Benchmark style: longer runs, warmup excluded, cooldown between runs
+
+## Risky / not recommended
+
+- Realtime process priority
+- battery-only benchmarking
+- thermal-protection bypasses
+- BIOS tweaks and fan-control hacks
+- claiming wins from tiny `16` token micro-tests alone
+
+## Reboot / instability notes
+
+- Larger model experiments on this laptop were not practical.
+- Background Ollama pulls can interfere with measurements and leave partial blobs behind.
+- Safe session tuning improved load time and benchmark hygiene more than raw generation throughput.

@@ -1,4 +1,7 @@
 *.gguf
+*.jsonl
+*.csv
 *.log
 results-local/
+.llm-maxperf-state.json
 .DS_Store
