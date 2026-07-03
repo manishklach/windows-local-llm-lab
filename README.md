@@ -116,12 +116,18 @@ Safe `gemma:2b` checks on the same laptop with `64` generated tokens, `2048` con
 | `gemma:2b` | `12` | `1024` | `15.48` | `15.48` | `0.30` | slightly behind the best ctx setting |
 | `gemma:2b` | `12` | `2048` | `16.00` | `16.00` | `0.58` | best short Gemma result so far |
 | `gemma:2b` | `12` | `4096` | `15.93` | `15.93` | `0.06` | nearly tied with `2048`, very stable |
+| `gemma:2b` | `16` | `1024` | `15.53` | `15.53` | `0.58` | best short `16`-thread context result |
+| `gemma:2b` | `16` | `2048` | `14.29` | `14.29` | `0.48` | regression versus `12` threads |
+| `gemma:2b` | `16` | `4096` | `14.88` | `14.88` | `1.14` | high variance, not attractive |
+| `gemma:2b` | `32` | `2048` | `12.99` | `12.99` | `0.08` | stable, but clearly slower from heavy oversubscription |
 
 Measured takeaway so far:
 
 - `gemma:2b` is much faster than the current `qwen35-4b-q4km` baseline on this laptop for decode throughput
 - on this short safe sample, `12` threads slightly beat both `10` and `8` threads for `gemma:2b`
+- pushing beyond `12` threads did not help overall: `16` regressed on most contexts, and `32` was clearly slower
 - `2048` context is the current best Gemma setting, but `4096` is very close and more stable than the short `2048` sample
+- longer confirmation at `16` threads, `1024` context, and `128` generated tokens reached about `15.12` median eval tok/s, which still trails the best `12`-thread short result
 - this is a throughput result, not a quality ranking; `qwen35-4b-q4km` remains the current reference model in this repo for broader comparisons
 
 ## WSL comparison track

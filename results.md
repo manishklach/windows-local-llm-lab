@@ -78,11 +78,22 @@ Short safe Gemma comparison using the newer harness and longer `64` token decode
 | `gemma:2b` | `12` | `1024` | `128` | `15.48` | `15.48` | `0.30` | slightly behind the best ctx setting |
 | `gemma:2b` | `12` | `2048` | `128` | `16.00` | `16.00` | `0.58` | best short Gemma result so far |
 | `gemma:2b` | `12` | `4096` | `128` | `15.93` | `15.93` | `0.06` | nearly tied with `2048` and very stable |
+| `gemma:2b` | `16` | `1024` | `128` | `15.53` | `15.53` | `0.58` | best short `16`-thread context result |
+| `gemma:2b` | `16` | `2048` | `128` | `14.29` | `14.29` | `0.48` | regression versus `12` threads |
+| `gemma:2b` | `16` | `4096` | `128` | `14.88` | `14.88` | `1.14` | higher variance and slower overall |
+| `gemma:2b` | `32` | `2048` | `128` | `12.99` | `12.99` | `0.08` | stable, but clearly slower from heavy oversubscription |
+
+Longer confirmation run on the `16`-thread path:
+
+| Model | Threads | NumCtx | NumBatch | NumPredict | Median eval tok/s | Avg eval tok/s | Std dev | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `gemma:2b` | `16` | `1024` | `128` | `128` | `15.12` | `14.87` | `0.19` | longer decode run; still behind the best `12`-thread short sample |
 
 Takeaway:
 
 - `gemma:2b` is the fastest compact model measured so far on this laptop.
 - On Gemma, `12` threads slightly beat both `10` and `8`, which is a different pattern from the direct `llama.cpp` Qwen CPU run.
+- Pushing further to `16` or `32` threads does not improve throughput on this `4C/8T` Ryzen laptop.
 - For this laptop, `num_ctx=2048` is the current best Gemma setting, while `4096` is close enough that it may be the safer default when a larger window is useful.
 - This is a throughput finding only; it does not mean `gemma:2b` is the best overall quality model.
 
@@ -132,7 +143,7 @@ Conclusion:
 - Runtime: native Windows with Ollama
 - Fastest compact throughput model: `gemma:2b`
 - Reference comparison model: `qwen35-4b-q4km`
-- Threads: `12` currently leads for `gemma:2b` in the short safe sample, while `6-8` remains the better tested range for `qwen35-4b-q4km`
+- Threads: `12` currently leads for `gemma:2b`; `16` and `32` did not help on this `4C/8T` machine
 - Gemma context: `2048` currently leads, with `4096` nearly tied
 - Power mode: `High performance`
 - AC processor min and max: `100%`
