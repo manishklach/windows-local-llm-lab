@@ -33,6 +33,17 @@ The first direct Windows quant sweep for alternate `Qwen3.5-4B` weights found a 
 
 This was a same-cell short safe comparison at `6` threads, `1024` context, `64` batch, and `64` generated tokens. A longer `IQ4_XS` confirmation at `128` generated tokens averaged about `6.37` eval tok/s with a corrected median of about `6.32`. It does not replace the longer validated `qwen35-4b-q4km` reference sweep, but it does make `IQ4_XS` the next Qwen weight worth confirming and sweeping more broadly.
 
+### Best tested IQ4_XS thread setting
+
+A narrowed thread-only sweep for `hf.co/unsloth/Qwen3.5-4B-GGUF:IQ4_XS` at `1024` context, `64` batch, and `128` generated tokens found a better laptop-specific thread choice.
+
+- `12` threads: about `6.90` median eval tok/s
+- `6` threads: about `6.54`
+- `10` threads: about `6.51`
+- `8` threads: about `6.41`
+
+This makes `IQ4_XS` at `12` threads the strongest Qwen decode-throughput configuration currently measured in the repo's safe Windows Ollama path.
+
 ### Fastest compact model measured so far
 
 `gemma:2b` is the current compact throughput leader on this machine.

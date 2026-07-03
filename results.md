@@ -83,6 +83,20 @@ Takeaway:
 - a longer `IQ4_XS` confirmation at the same `6/1024/64` setting but with `128` generated tokens produced measured runs of `6.3157`, `6.0242`, and `6.7633` tok/s, for a corrected median of `6.3157` and average of `6.3677`
 - these values come from the newer short safe comparison harness and should be read as same-cell relative comparisons, not replacements for the earlier longer validated `7.62` native Windows Qwen reference sweep cell
 
+Thread-only follow-up sweep for `hf.co/unsloth/Qwen3.5-4B-GGUF:IQ4_XS` at `1024` context, `64` batch, and `128` generated tokens:
+
+| Threads | Median eval tok/s | Avg eval tok/s | Std dev | Variance % | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `12` | `6.9006` | `6.9006` | `0.0084` | `0.12` | current best tested `IQ4_XS` thread setting |
+| `6` | `6.5437` | `6.5437` | `0.1207` | `1.84` | prior baseline thread count still competitive |
+| `10` | `6.5103` | `6.5103` | `0.3363` | `5.17` | higher variance, less attractive |
+| `8` | `6.4138` | `6.4138` | `0.0282` | `0.44` | very stable, but slower |
+
+Takeaway:
+
+- unlike the earlier `qwen35-4b-q4km` baseline, `IQ4_XS` clearly prefers `12` threads on this laptop in the tested `1024/64/128` cell
+- this is the best Qwen-specific thread tuning result measured so far in the current repo session
+
 Short safe Gemma comparison using the newer harness and longer `64` token decode runs:
 
 | Model | Threads | NumCtx | NumBatch | Median eval tok/s | Avg eval tok/s | Std dev | Notes |

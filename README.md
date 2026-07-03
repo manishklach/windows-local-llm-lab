@@ -146,6 +146,13 @@ Measured takeaway so far on this laptop for a clean `Qwen3.5-4B` Windows decode 
 - a longer `IQ4_XS` confirmation at `128` generated tokens averaged about `6.37` eval tok/s, with a corrected median of about `6.32` after fixing the repo's odd-sample median helper
 - on this machine, a smaller or more aggressive quant does not automatically win; the right answer needs measurement
 
+Thread-only follow-up sweep for `IQ4_XS` at `1024` context, `64` batch, and `128` generated tokens:
+
+- `12` threads is the current best tested `IQ4_XS` setting on this laptop at about `6.90` median eval tok/s
+- `6` threads followed at about `6.54`
+- `10` threads reached about `6.51`, but with noticeably higher variance
+- `8` threads was stable at about `6.41`, but slower
+
 ## WSL comparison track
 
 WSL readiness:
