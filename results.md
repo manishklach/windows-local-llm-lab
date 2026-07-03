@@ -209,17 +209,36 @@ Takeaway: Neither model beats the existing `gemma:2b` compact throughput winner.
 - Fastest compact throughput model: `gemma:2b`
 - Reference comparison model: `qwen35-4b-q4km`
 - Threads: `12` currently leads for `gemma:2b`; `16` and `32` did not help on this `4C/8T` machine
+- Threads for `IQ4_XS` Qwen: `12` also leads (unlike the older `q4km` reference which preferred `6`)
 - Gemma context: `2048` currently leads, with `4096` nearly tied
 - Gemma batch: `128` wins on stability; `64` ties on throughput
 - Power mode: `High performance`
 - AC processor min and max: `100%`
 - Ollama priority: `High`
-- Benchmark style: longer runs, warmup excluded, cooldown between runs
+- Benchmark style: longer runs (`128`+ generated tokens), warmup excluded, cooldown between runs
+
+## Model hierarchy (throughput)
+
+Current measured throughput ranking from fastest to slowest on this laptop (Ollama, native Windows, best known config for each):
+
+| Rank | Model | Params | Median eval tok/s | Config |
+| --- | --- | --- | --- | --- |
+| 1 | `gemma:2b` | 2B | `15.54` | 12 threads, 2048 ctx, 128 batch |
+| 2 | `gemma:2b` (WSL) | 2B | `15.77` | WSL2 → Windows Ollama, 12 threads |
+| 3 | `qwen35-4b-q4km` | 4B | `7.62` | 6 threads, 1024 ctx, 64 batch |
+| 4 | `hf.co/.../IQ4_XS` | 4B | `6.90` | 12 threads, 1024 ctx, 64 batch |
+| 5 | `nemotron-mini:4b` | 4B | `6.53` | 12 threads, 2048 ctx, 128 batch |
+| 6 | `llama.cpp` CPU | 4B | `6.12` | 8 threads, direct CPU |
+| 7 | `glm4:9b` | 9B | `4.30` | 12 threads, 2048 ctx, 128 batch |
+
+Key insight: **Model architecture and size matter far more than thread tuning.** The 2B Gemma model is ~2.4x faster than the 4B Nemotron and ~3.6x faster than the 9B GLM at the same hyperparameters.
 
 ## Next model candidates
 
 - `gemma4` compact variants are worth testing next, but only if their pull size stays reasonable for this laptop.
-- compact `Nemotron`, `Kimi`, `MiniMax`, and alternate `Qwen` variants are reasonable next comparisons if they fit cleanly in `16 GB` RAM.
+- `Nemotron` (tested: `nemotron-mini:4b` at `6.53` tok/s — slower than gemma), `Kimi`, `MiniMax`, and alternate `Qwen` variants are reasonable next comparisons if they fit cleanly in `16 GB` RAM.
+- `Phi-3` or `Phi-4` compact models from Microsoft are worth testing — they may offer a better quality/speed tradeoff than the tested models.
+- Newer `qwen3.5` or `qwen4` compact variants (e.g., `qwen3.5:0.6b`, `qwen3.5:1.7b`, `qwen3.5:4b`) could offer better throughput than the current `qwen35-4b-q4km` reference.
 
 ## Risky / not recommended
 

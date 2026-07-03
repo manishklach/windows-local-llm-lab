@@ -31,7 +31,8 @@ On this laptop, the fastest proven safe runtime path is still `native Windows + 
 - fastest compact model measured so far: `gemma:2b`
 - additional tested quants: `qwen35-4b-udiq2m`
 - additional tested models: `nemotron-mini:4b`, `glm4:9b`
-- next logical model candidates for this laptop: newer small `Gemma` variants, then compact `Nemotron` (already tested), `Kimi`, `MiniMax`, or `Qwen` alternatives that fit comfortably in `16 GB` RAM
+- additional tested models: `nemotron-mini:4b` (`6.53` tok/s — 2.4x slower than gemma), `glm4:9b` (`4.30` tok/s — 3.6x slower)
+- next logical model candidates for this laptop: newer small `Gemma` variants (`gemma2`, `gemma4` compact), `Phi` series (`phi3`, `phi4`), compact `Qwen3.5` variants, and any new `Nemotron` or `MiniMax` releases that fit in `16 GB` RAM
 
 ## Machine used so far
 
@@ -206,6 +207,22 @@ powershell -ExecutionPolicy Bypass -File .\sweep-ollama-options-safe.ps1 -Model 
 powershell -ExecutionPolicy Bypass -File .\tools\exit-max-perf-mode.ps1 -DeleteStateAfterRestore
 ```
 
+## Batch sweep recipe
+
+To reproduce the focused batch sweep for `gemma:2b`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\sweep-ollama-options-safe.ps1 -Model gemma:2b -ThreadCounts 12 -NumCtxValues 2048 -NumBatchValues 64,128,256,512 -NumPredict 128 -Runs 3 -WarmupRuns 1
+```
+
+## Model comparison recipe
+
+To compare any set of models at fixed hyperparameters:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\compare-models-safe.ps1 -Models gemma:2b,nemotron-mini:4b,glm4:9b -NumThread 12 -NumCtx 2048 -NumBatch 128 -NumPredict 128 -Runs 3
+```
+
 ## Extra comparisons
 
 Context length:
@@ -282,6 +299,17 @@ Measured takeaway so far:
 - the earlier short-sample best of `~16.00` was a single outlier; the reproducible median is `~15.54`
 - this is a throughput result, not a quality ranking; `qwen35-4b-q4km` remains the current reference model in this repo for broader comparisons
 
+## Additional model benchmarks
+
+Beyond the primary Gemma and Qwen targets, this repo now includes throughput measurements for additional local models at the best known Gemma hyperparameters (`12` threads, `2048` ctx, `128` batch, `128` generated tokens):
+
+| Model | Size | Median eval tok/s | Std dev | vs gemma:2b |
+| --- | --- | --- | --- | --- |
+| `nemotron-mini:4b` | 2.7 GB (4B) | `6.53` | `0.98` | 2.4x slower |
+| `glm4:9b` | 5.5 GB (9B) | `4.30` | `0.18` | 3.6x slower |
+
+Takeaway: Neither model challenges `gemma:2b` on throughput. `gemma:2b` remains the fastest model measured on this laptop by a wide margin. The `nemotron-mini:4b` run showed unusually high variance (std dev `0.98`), suggesting thermal or scheduling sensitivity.
+
 ## Qwen quant comparison
 
 You can compare alternate Ollama or Hugging Face-hosted quants with the same harness:
@@ -331,7 +359,7 @@ Measured takeaway so far:
 - WSL itself is healthy on this machine
 - with the controlled bridge enabled and the explicit endpoint `http://172.26.208.1:11434`, `gemma:2b` reached about `15.77` median eval tok/s from `WSL2` at `12` threads, `2048` context, `128` batch, and `64` generated tokens
 - boosting WSL threads beyond `12` did not help: `16` threads landed around `14.98`, and `32` threads dropped to about `12.75`
-- the WSL winner is very close to the current native Windows short-sample Gemma best of about `16.00` eval tok/s on the same laptop
+- the WSL winner is very close to the current native Windows Gemma best of about `15.54` median eval tok/s on the same laptop
 - `qwen35-4b-q4km` was notably worse through the same WSL path: about `5.33` median eval tok/s at `6` threads, `1024` context, and `64` batch, versus the native Windows Qwen reference of about `7.62`
 - the tracked WSL snapshot lives in [docs/wsl-results-2026-07-03.md](./docs/wsl-results-2026-07-03.md)
 
