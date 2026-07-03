@@ -23,6 +23,16 @@ This release turns the repo into a reproducible, safety-first benchmarking harne
 - best validated safe Ollama sweep cell so far: about `7.62` median eval tok/s
 - winning tested cell for that result: `6` threads, `1024` context, `64` batch
 
+### Faster Qwen weight candidate
+
+The first direct Windows quant sweep for alternate `Qwen3.5-4B` weights found a slightly faster candidate for this laptop.
+
+- `hf.co/unsloth/Qwen3.5-4B-GGUF:IQ4_XS`: about `6.12` median eval tok/s
+- `hf.co/unsloth/Qwen3.5-4B-GGUF:Q3_K_M`: about `5.85`
+- `qwen35-4b-q4km`: about `5.76`
+
+This was a same-cell short safe comparison at `6` threads, `1024` context, `64` batch, and `64` generated tokens. A longer `IQ4_XS` confirmation at `128` generated tokens averaged about `6.37` eval tok/s with a corrected median of about `6.32`. It does not replace the longer validated `qwen35-4b-q4km` reference sweep, but it does make `IQ4_XS` the next Qwen weight worth confirming and sweeping more broadly.
+
 ### Fastest compact model measured so far
 
 `gemma:2b` is the current compact throughput leader on this machine.

@@ -555,10 +555,11 @@ function Get-StatsSummary {
     $average = ($Values | Measure-Object -Average).Average
     $min = ($Values | Measure-Object -Minimum).Minimum
     $max = ($Values | Measure-Object -Maximum).Maximum
+    $middleIndex = [int][math]::Floor($sorted.Count / 2)
     $median = if ($sorted.Count % 2 -eq 1) {
-        $sorted[[int]($sorted.Count / 2)]
+        $sorted[$middleIndex]
     } else {
-        ($sorted[($sorted.Count / 2) - 1] + $sorted[$sorted.Count / 2]) / 2
+        ($sorted[$middleIndex - 1] + $sorted[$middleIndex]) / 2
     }
 
     $variance = 0.0

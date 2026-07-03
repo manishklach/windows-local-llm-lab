@@ -130,6 +130,22 @@ Measured takeaway so far:
 - longer confirmation at `16` threads, `1024` context, and `128` generated tokens reached about `15.12` median eval tok/s, which still trails the best `12`-thread short result
 - this is a throughput result, not a quality ranking; `qwen35-4b-q4km` remains the current reference model in this repo for broader comparisons
 
+## Qwen quant comparison
+
+You can compare alternate Ollama or Hugging Face-hosted quants with the same harness:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\compare-models-safe.ps1 -Models qwen35-4b-q4km,qwen35-4b-udiq2m -NumThread 8 -NumCtx 2048 -NumPredict 128 -Runs 3
+```
+
+Measured takeaway so far on this laptop for a clean `Qwen3.5-4B` Windows decode comparison at `6` threads, `1024` context, `64` batch, and `64` generated tokens:
+
+- `hf.co/unsloth/Qwen3.5-4B-GGUF:IQ4_XS` is the fastest tested Qwen weight so far at about `6.12` median eval tok/s
+- `hf.co/unsloth/Qwen3.5-4B-GGUF:Q3_K_M` followed at about `5.85`
+- the existing `qwen35-4b-q4km` reference landed at about `5.76` in the same short two-run harness
+- a longer `IQ4_XS` confirmation at `128` generated tokens averaged about `6.37` eval tok/s, with a corrected median of about `6.32` after fixing the repo's odd-sample median helper
+- on this machine, a smaller or more aggressive quant does not automatically win; the right answer needs measurement
+
 ## WSL comparison track
 
 WSL readiness:

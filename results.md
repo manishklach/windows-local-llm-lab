@@ -68,6 +68,21 @@ Short direct comparison on this laptop for the current `Qwen3.5-4B` reference fa
 | `qwen35-4b-q4km:latest` | `18.45` | `6.81` | `8.47` | `12.23` | current best local choice |
 | `qwen35-4b-udiq2m:latest` | `7.16` | `4.88` | `5.22` | `12.03` | smaller quant was slower here |
 
+Short Windows quant sweep for alternate `Qwen3.5-4B` Ollama / Hugging Face weights using the safe comparison harness at `6` threads, `1024` context, `64` batch, and `64` generated tokens:
+
+| Model | Median eval tok/s | Avg eval tok/s | Std dev | Notes |
+| --- | --- | --- | --- | --- |
+| `hf.co/unsloth/Qwen3.5-4B-GGUF:IQ4_XS` | `6.12` | `6.12` | `0.60` | fastest tested Qwen weight in this short harness |
+| `hf.co/unsloth/Qwen3.5-4B-GGUF:Q3_K_M` | `5.85` | `5.85` | `0.08` | slightly ahead of the current local reference |
+| `qwen35-4b-q4km` | `5.76` | `5.76` | `0.03` | current local reference in the same harness |
+
+Takeaway:
+
+- `IQ4_XS` is the best Qwen throughput candidate tested so far for this laptop if the goal is raw decode speed
+- `Q3_K_M` was not meaningfully better than the current `q4km` reference here
+- a longer `IQ4_XS` confirmation at the same `6/1024/64` setting but with `128` generated tokens produced measured runs of `6.3157`, `6.0242`, and `6.7633` tok/s, for a corrected median of `6.3157` and average of `6.3677`
+- these values come from the newer short safe comparison harness and should be read as same-cell relative comparisons, not replacements for the earlier longer validated `7.62` native Windows Qwen reference sweep cell
+
 Short safe Gemma comparison using the newer harness and longer `64` token decode runs:
 
 | Model | Threads | NumCtx | NumBatch | Median eval tok/s | Avg eval tok/s | Std dev | Notes |
