@@ -157,6 +157,7 @@ Measured takeaway so far:
 - with the controlled bridge enabled and the explicit endpoint `http://172.26.208.1:11434`, `gemma:2b` reached about `15.77` median eval tok/s from `WSL2` at `12` threads, `2048` context, `128` batch, and `64` generated tokens
 - boosting WSL threads beyond `12` did not help: `16` threads landed around `14.98`, and `32` threads dropped to about `12.75`
 - the WSL winner is very close to the current native Windows short-sample Gemma best of about `16.00` eval tok/s on the same laptop
+- `qwen35-4b-q4km` was notably worse through the same WSL path: about `5.33` median eval tok/s at `6` threads, `1024` context, and `64` batch, versus the native Windows Qwen reference of about `7.62`
 - the tracked WSL snapshot lives in [docs/wsl-results-2026-07-03.md](./docs/wsl-results-2026-07-03.md)
 
 Compare the native Windows CSV against the WSL CSV:

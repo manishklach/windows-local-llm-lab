@@ -91,11 +91,13 @@ First valid comparison point:
 - `WSL2 -> Windows Ollama`, `gemma:2b`, `12` threads, `2048` context, `128` batch, `64` generated tokens: about `15.77` median eval tok/s
 - `WSL2 -> Windows Ollama`, `gemma:2b`, `16` threads, `2048` context, `128` batch, `64` generated tokens: about `14.98`
 - `WSL2 -> Windows Ollama`, `gemma:2b`, `32` threads, `2048` context, `128` batch, `64` generated tokens: about `12.75`
+- `WSL2 -> Windows Ollama`, `qwen35-4b-q4km`, `6` threads, `1024` context, `64` batch, `64` generated tokens: about `5.33`
 
 Takeaway:
 
 - this is very close to the native Windows short-sample Gemma best of about `16.00` eval tok/s on the same laptop
 - the WSL thread winner is also `12`; pushing higher follows the same regression pattern seen on native Windows
+- the same WSL path is much less attractive for `qwen35-4b-q4km`, which lagged the native Windows Qwen reference meaningfully
 - WSL still needs the controlled bridge workflow or explicit reachable endpoint; it does not work by default on this machine
 
 ## Safety model

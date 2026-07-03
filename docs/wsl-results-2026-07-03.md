@@ -34,6 +34,27 @@ All runs below used:
 - `32` threads is clearly worse and confirms the oversubscription ceiling.
 - The best WSL result is very close to the native Windows short-sample `gemma:2b` best of about `16.00` eval tok/s.
 
+## Qwen reference run
+
+This run used the current best validated Windows Qwen cell for comparison:
+
+- Model: `qwen35-4b-q4km`
+- Threads: `6`
+- NumCtx: `1024`
+- NumBatch: `64`
+- NumPredict: `64`
+- Warmups: `1`
+- Measured runs: `2`
+
+| Threads | NumCtx | NumBatch | Median eval tok/s | Avg eval tok/s | Min | Max | Summary artifact |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `6` | `1024` | `64` | `5.33` | `5.33` | `5.05` | `5.61` | `wsl-ollama-qwen35-4b-q4km-20260703-061017-summary.md` |
+
+Qwen takeaway:
+
+- This WSL result is clearly below the current native Windows Qwen safe-sweep reference of about `7.62` median eval tok/s at the same `6/1024/64` shape.
+- On this laptop, the `WSL2 -> Windows Ollama` path looks much more competitive for `gemma:2b` than for `qwen35-4b-q4km`.
+
 ## Notes
 
 - Raw CSV, JSONL, and summary files live in `results-local/` and are intentionally gitignored to keep the repo clean.

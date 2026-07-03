@@ -140,12 +140,14 @@ Controlled bridge result:
 | `WSL2 -> Windows Ollama` | `gemma:2b` | `12` | `2048` | `128` | `64` | `15.77` | `15.77` | uses explicit endpoint `http://172.26.208.1:11434` with the controlled WSL bridge enabled |
 | `WSL2 -> Windows Ollama` | `gemma:2b` | `16` | `2048` | `128` | `64` | `14.98` | `14.98` | higher threads regressed, matching native Windows behavior |
 | `WSL2 -> Windows Ollama` | `gemma:2b` | `32` | `2048` | `128` | `64` | `12.75` | `12.75` | heavy oversubscription is clearly slower |
+| `WSL2 -> Windows Ollama` | `qwen35-4b-q4km` | `6` | `1024` | `64` | `64` | `5.33` | `5.33` | same shape as the current best validated native Windows Qwen sweep cell |
 
 Conclusion:
 
 - the repo now has a first valid WSL-vs-Windows comparison point for `gemma:2b`
 - the best `WSL2 -> Windows Ollama` result is very close to the native Windows short-sample Gemma result of about `16.00` eval tok/s
 - WSL oversubscription follows the same pattern as native Windows here: `12` threads beats `16`, and `32` is much worse
+- `qwen35-4b-q4km` is materially slower through this WSL path than on native Windows at the current best-tested `6/1024/64` setting
 - the Windows-hosted endpoint still needs the controlled bridge workflow or an explicit reachable endpoint; it is not reachable from WSL by default
 
 ## Best known safe config
