@@ -179,6 +179,30 @@ Conclusion:
 - `qwen35-4b-q4km` is materially slower through this WSL path than on native Windows at the current best-tested `6/1024/64` setting
 - the Windows-hosted endpoint still needs the controlled bridge workflow or an explicit reachable endpoint; it is not reachable from WSL by default
 
+## Gemma batch sweep
+
+Focused batch sweep for `gemma:2b` at `12` threads, `2048` context, and `128` generated tokens:
+
+| Batch | Median eval tok/s | Avg eval tok/s | Std dev | Variance % |
+| --- | --- | --- | --- | --- |
+| `64` | `15.5441` | `15.7402` | `0.4506` | `2.90` |
+| `128` | `15.5418` | `15.6316` | `0.1466` | `0.94` |
+| `256` | `15.258` | `15.364` | `0.6412` | `4.20` |
+| `512` | `15.2384` | `15.3373` | `0.2722` | `1.79` |
+
+Takeaway: batch `64` and `128` are tied on throughput, but **`128` wins decisively on stability** (lowest std dev). The earlier short-sample best of `~16.00` was a single outlier; the reproducible median across 3 measured runs is `~15.54`.
+
+## New model sweep
+
+Initial benchmarks for additional local models at the best known Gemma hyperparameters (`12` threads, `2048` ctx, `128` batch, `128` generated tokens):
+
+| Model | Median eval tok/s | Avg eval tok/s | Std dev | Notes |
+| --- | --- | --- | --- | --- |
+| `nemotron-mini:4b` | `6.529` | `6.7978` | `0.9782` | 4B NVIDIA, high variance, ~2.5x slower than gemma:2b |
+| `glm4:9b` | `4.298` | `4.3443` | `0.1809` | 9B THUDM, very stable but slow, ~3.6x slower than gemma:2b |
+
+Takeaway: Neither model beats the existing `gemma:2b` compact throughput winner. `gemma:2b` remains the fastest model measured on this laptop by a wide margin.
+
 ## Best known safe config
 
 - Runtime: native Windows with Ollama
@@ -186,6 +210,7 @@ Conclusion:
 - Reference comparison model: `qwen35-4b-q4km`
 - Threads: `12` currently leads for `gemma:2b`; `16` and `32` did not help on this `4C/8T` machine
 - Gemma context: `2048` currently leads, with `4096` nearly tied
+- Gemma batch: `128` wins on stability; `64` ties on throughput
 - Power mode: `High performance`
 - AC processor min and max: `100%`
 - Ollama priority: `High`

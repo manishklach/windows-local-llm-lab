@@ -9,7 +9,9 @@ The stable baseline in this repo is native Windows plus Ollama. The goal is to i
 On this laptop, the fastest proven safe runtime path is still `native Windows + Ollama`.
 
 - best validated safe Ollama sweep cell so far: about `7.62` median eval tok/s at `6` threads, `1024` context, `64` batch
-- fastest compact model measured so far: `gemma:2b` at about `16.00` median eval tok/s with `12` threads, `2048` context, `128` batch, and `64` generated tokens
+- fastest compact model measured so far: `gemma:2b` at about `15.54` median eval tok/s with `12` threads, `2048` context, `128` batch, and `128` generated tokens (batch `128` is the stability winner; batch `64` ties on throughput)
+- `nemotron-mini:4b` reached about `6.53` median eval tok/s at the same hyperparameters (high variance)
+- `glm4:9b` reached about `4.30` median eval tok/s at the same hyperparameters (very stable but slower)
 - direct `llama.cpp` CPU at `8` threads reached about `6.12` gen tok/s
 - direct `llama.cpp` CPU at `10` threads dropped to about `5.47` gen tok/s
 - WSL now has a first valid comparison path through the controlled bridge experiment, with `gemma:2b` reaching about `15.77` median eval tok/s at `12` threads
@@ -27,8 +29,9 @@ On this laptop, the fastest proven safe runtime path is still `native Windows + 
 
 - current quality-oriented reference model: `qwen35-4b-q4km`
 - fastest compact model measured so far: `gemma:2b`
-- additional tested quant: `qwen35-4b-udiq2m`
-- next logical model candidates for this laptop: newer small `Gemma` variants, then compact `Nemotron`, `Kimi`, `MiniMax`, or `Qwen` alternatives that fit comfortably in `16 GB` RAM
+- additional tested quants: `qwen35-4b-udiq2m`
+- additional tested models: `nemotron-mini:4b`, `glm4:9b`
+- next logical model candidates for this laptop: newer small `Gemma` variants, then compact `Nemotron` (already tested), `Kimi`, `MiniMax`, or `Qwen` alternatives that fit comfortably in `16 GB` RAM
 
 ## Machine used so far
 
@@ -253,12 +256,21 @@ Safe `gemma:2b` checks on the same laptop with `64` generated tokens, `2048` con
 | `gemma:2b` | `8` | `2048` | `14.78` | `14.78` | `0.03` | very stable |
 | `gemma:2b` | `10` | `2048` | `15.35` | `15.35` | `0.29` | first strong Gemma result |
 | `gemma:2b` | `12` | `1024` | `15.48` | `15.48` | `0.30` | slightly behind the best ctx setting |
-| `gemma:2b` | `12` | `2048` | `16.00` | `16.00` | `0.58` | best short Gemma result so far |
+| `gemma:2b` | `12` | `2048` | `15.54` | `15.63` | `0.15` | confirmed best across 3 longer runs at batch 128 |
 | `gemma:2b` | `12` | `4096` | `15.93` | `15.93` | `0.06` | nearly tied with `2048`, very stable |
 | `gemma:2b` | `16` | `1024` | `15.53` | `15.53` | `0.58` | best short `16`-thread context result |
 | `gemma:2b` | `16` | `2048` | `14.29` | `14.29` | `0.48` | regression versus `12` threads |
 | `gemma:2b` | `16` | `4096` | `14.88` | `14.88` | `1.14` | high variance, not attractive |
 | `gemma:2b` | `32` | `2048` | `12.99` | `12.99` | `0.08` | stable, but clearly slower from heavy oversubscription |
+
+Focused batch sweep at `12` threads, `2048` context, `128` generated tokens:
+
+| Batch | Median eval tok/s | Std dev | Variance % |
+| --- | --- | --- | --- |
+| `64` | `15.54` | `0.45` | `2.90` |
+| `128` | `15.54` | `0.15` | `0.94` |
+| `256` | `15.26` | `0.64` | `4.20` |
+| `512` | `15.24` | `0.27` | `1.79` |
 
 Measured takeaway so far:
 
@@ -266,7 +278,8 @@ Measured takeaway so far:
 - on this short safe sample, `12` threads slightly beat both `10` and `8` threads for `gemma:2b`
 - pushing beyond `12` threads did not help overall: `16` regressed on most contexts, and `32` was clearly slower
 - `2048` context is the current best Gemma setting, but `4096` is very close and more stable than the short `2048` sample
-- longer confirmation at `16` threads, `1024` context, and `128` generated tokens reached about `15.12` median eval tok/s, which still trails the best `12`-thread short result
+- batch `64` and `128` are tied on throughput, but `128` wins on stability (lowest variance)
+- the earlier short-sample best of `~16.00` was a single outlier; the reproducible median is `~15.54`
 - this is a throughput result, not a quality ranking; `qwen35-4b-q4km` remains the current reference model in this repo for broader comparisons
 
 ## Qwen quant comparison
