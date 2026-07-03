@@ -21,13 +21,15 @@ The stable baseline for this repo is still Ollama running on the CPU path under 
 CPU reference run:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\experiments\llamacpp-vulkan\run-llama-bench-cpu.ps1 -LlamaBenchPath C:\path\to\llama-bench.exe -ModelPath C:\path\to\model.gguf
+powershell -ExecutionPolicy Bypass -File .\experiments\llamacpp-vulkan\run-llama-bench-cpu.ps1 -LlamaBenchPath C:\path\to\llama-bench.exe -ModelPath C:\path\to\model.gguf -Threads 8 -PromptTokens 512 -GenerateTokens 128 -BatchSize 128 -Repetitions 3
 ```
 
 Vulkan experiment:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\experiments\llamacpp-vulkan\run-llama-bench-vulkan.ps1 -LlamaBenchPath C:\path\to\llama-bench.exe -ModelPath C:\path\to\model.gguf
+powershell -ExecutionPolicy Bypass -File .\experiments\llamacpp-vulkan\run-llama-bench-vulkan.ps1 -LlamaBenchPath C:\path\to\llama-bench.exe -ModelPath C:\path\to\model.gguf -Threads 8 -PromptTokens 512 -GenerateTokens 128 -BatchSize 128 -Repetitions 3 -GpuLayers 999
 ```
 
-Compare the logged tokens-per-second numbers against the safe Ollama baseline in [results.md](../../results.md).
+Both scripts request JSON output from `llama-bench` and also save a raw log so you can diff CPU and Vulkan runs later.
+
+Compare the logged tokens-per-second numbers against the safe Ollama baseline in [results.md](../../results.md), then use [compare-runtime-results.ps1](../../compare-runtime-results.ps1) for Windows vs WSL CSV comparisons.

@@ -7,7 +7,9 @@ param(
     [string]$OutDir = '.\results-local',
     [int]$Threads = 8,
     [int]$PromptTokens = 512,
-    [int]$GenerateTokens = 128
+    [int]$GenerateTokens = 128,
+    [int]$BatchSize = 128,
+    [int]$Repetitions = 3
 )
 
 Set-StrictMode -Version Latest
@@ -27,9 +29,24 @@ if (-not (Test-Path -LiteralPath $resolvedOutDir)) {
 }
 
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+$jsonPath = Join-Path $resolvedOutDir "llama-bench-cpu-$stamp.json"
 $logPath = Join-Path $resolvedOutDir "llama-bench-cpu-$stamp.log"
 
-& $LlamaBenchPath -m $ModelPath -t $Threads -p $PromptTokens -n $GenerateTokens 2>&1 | Tee-Object -FilePath $logPath
+$args = @(
+    '-m', $ModelPath,
+    '-t', $Threads,
+    '-b', $BatchSize,
+    '-p', $PromptTokens,
+    '-n', $GenerateTokens,
+    '-r', $Repetitions,
+    '-o', 'json'
+)
+
+$output = & $LlamaBenchPath @args 2>&1
+$output | Tee-Object -FilePath $logPath | Out-Null
+$text = $output | Out-String
+$text | Set-Content -Path $jsonPath
 
 Write-Host ''
-Write-Host "CPU benchmark log saved to $logPath"
+Write-Host "CPU llama-bench JSON saved to $jsonPath"
+Write-Host "CPU llama-bench log saved to $logPath"

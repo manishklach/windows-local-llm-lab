@@ -9,6 +9,7 @@ The stable baseline in this repo is native Windows plus Ollama. The goal is to i
 - safe preflight, tuning, and restore scripts under `tools/`
 - safe Ollama benchmark wrappers in the repo root
 - experiment scaffolding for `llama.cpp` Vulkan under `experiments/`
+- WSL comparison helpers for Linux-first runtime experiments
 - results and methodology docs for tracking what actually helps
 
 ## Machine used so far
@@ -63,6 +64,45 @@ Thermal watch:
 powershell -ExecutionPolicy Bypass -File .\tools\watch-llm-thermals.ps1 -IntervalSeconds 5 -LogPath .\results-local\thermals.csv
 ```
 
+## llama.cpp direct track
+
+CPU:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\experiments\llamacpp-vulkan\run-llama-bench-cpu.ps1 -LlamaBenchPath C:\path\to\llama-bench.exe -ModelPath C:\path\to\qwen35-4b-q4km.gguf -Threads 8 -PromptTokens 512 -GenerateTokens 128 -BatchSize 128 -Repetitions 3
+```
+
+Vulkan:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\experiments\llamacpp-vulkan\run-llama-bench-vulkan.ps1 -LlamaBenchPath C:\path\to\llama-bench.exe -ModelPath C:\path\to\qwen35-4b-q4km.gguf -Threads 8 -PromptTokens 512 -GenerateTokens 128 -BatchSize 128 -Repetitions 3 -GpuLayers 999
+```
+
+## WSL comparison track
+
+WSL readiness:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\test-wsl-readiness.ps1
+```
+
+WSL benchmark against the Windows-hosted Ollama API:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\experiments\wsl\run-ollama-benchmark-wsl.ps1 -Distro Ubuntu-24.04 -Model qwen35-4b-q4km -Runs 3 -WarmupRuns 1 -NumPredict 128 -NumThread 8 -NumCtx 2048 -NumBatch 128
+```
+
+If the readiness script says `WindowsOllamaFromWSL=False`, this laptop is not currently exposing the Windows Ollama endpoint into WSL. In that case, either:
+
+- point the WSL runner at a reachable endpoint with `-OllamaEndpoint http://<host>:11434`
+- or install and run Ollama inside WSL for a true Linux-side comparison
+
+Compare the native Windows CSV against the WSL CSV:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\compare-runtime-results.ps1 -PrimaryCsv .\results-local\measure-qwen35-4b-q4km-<windows>.csv -SecondaryCsv .\results-local\wsl-ollama-qwen35-4b-q4km-<wsl>.csv
+```
+
 ## Safety rules
 
 - Do not use Realtime priority.
@@ -75,6 +115,7 @@ powershell -ExecutionPolicy Bypass -File .\tools\watch-llm-thermals.ps1 -Interva
 - Use short `16` or `32` token runs only for smoke checks.
 
 More detail lives in [docs/safety.md](./docs/safety.md) and [docs/benchmark-methodology.md](./docs/benchmark-methodology.md).
+WSL-specific notes live in [experiments/wsl/README.md](./experiments/wsl/README.md).
 
 ## Existing compatibility scripts
 
