@@ -1,6 +1,6 @@
-# Qwen Windows TPS Lab
+# Windows Local LLM Lab
 
-Safe, reversible Windows laptop benchmarking for local LLM throughput with Ollama.
+Safe, reversible Windows laptop benchmarking for local LLM throughput across multiple local models and runtimes.
 
 The stable baseline in this repo is native Windows plus Ollama. The goal is to improve tokens-per-second with repeatable measurements, not random tweaks.
 
@@ -22,6 +22,12 @@ On this laptop, the fastest proven safe path is still `native Windows + Ollama +
 - WSL comparison helpers for Linux-first runtime experiments
 - results and methodology docs for tracking what actually helps
 
+## Current model coverage
+
+- current reference model: `qwen35-4b-q4km`
+- additional tested quant: `qwen35-4b-udiq2m`
+- next logical model candidates for this laptop: small `Gemma` variants, then other compact `4B`-class models
+
 ## Machine used so far
 
 - CPU: `AMD Ryzen 3 5300U`
@@ -31,7 +37,9 @@ On this laptop, the fastest proven safe path is still `native Windows + Ollama +
 - Windows: `11`
 - Ollama: `0.30.11`
 
-## Model setup
+## Model setup example
+
+The current reference baseline in this repo uses `qwen35-4b-q4km`, but the benchmark scripts are generic and can be pointed at any local Ollama model or GGUF path.
 
 1. Put the GGUF in the repo root as `qwen35-4b-q4km.gguf`.
 2. Create the local Ollama model:

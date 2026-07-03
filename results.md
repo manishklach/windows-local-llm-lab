@@ -9,11 +9,11 @@
 - Ollama version: `0.30.11`
 - Power mode: `High performance` for current tuned runs
 - AC plugged in: `Yes`
-- Model: `qwen35-4b-q4km`
+- Current reference model: `qwen35-4b-q4km`
 
 ## Stable baseline
 
-Short earlier baseline with `32` generated tokens:
+Short earlier baseline with `32` generated tokens on the current reference model:
 
 | Scenario | Threads | Prompt tok/s | Gen tok/s | Load seconds | Total seconds |
 | --- | --- | --- | --- | --- | --- |
@@ -29,7 +29,7 @@ Safe tuning so far:
 - raised `ollama.exe` priority to `High`
 - stopped background model pulls before benchmarking
 
-Short tuned check with `16` generated tokens:
+Short tuned check with `16` generated tokens on the current reference model:
 
 | Scenario | Threads | Prompt tok/s | Gen tok/s | Load seconds | Total seconds |
 | --- | --- | --- | --- | --- | --- |
@@ -61,7 +61,7 @@ This is stronger than the earlier short single-run checks and is the best measur
 
 ## Model / quant comparison
 
-Short direct comparison on this laptop:
+Short direct comparison on this laptop for the current `Qwen3.5-4B` reference family:
 
 | Model | Prompt tok/s | Gen tok/s | Load seconds | Total seconds | Notes |
 | --- | --- | --- | --- | --- | --- |
@@ -112,12 +112,17 @@ Conclusion:
 ## Best known safe config
 
 - Runtime: native Windows with Ollama
-- Model: `qwen35-4b-q4km`
+- Model: `qwen35-4b-q4km` as the current best-tested reference model
 - Threads: `6-8` depending on workload, with `6` currently best in the validated safe sweep and `8` still a strong default
 - Power mode: `High performance`
 - AC processor min and max: `100%`
 - Ollama priority: `High`
 - Benchmark style: longer runs, warmup excluded, cooldown between runs
+
+## Next model candidates
+
+- `Gemma` small variants are the next recommended family to test on this laptop.
+- `Nemotron` is lower priority here unless a compact variant shows a clear reason to compare.
 
 ## Risky / not recommended
 
