@@ -10,8 +10,10 @@ On this laptop, the fastest proven safe runtime path is still `native Windows + 
 
 - best validated safe Ollama sweep cell so far: about `7.62` median eval tok/s at `6` threads, `1024` context, `64` batch
 - fastest compact model measured so far: `gemma:2b` at about `15.54` median eval tok/s with `12` threads, `2048` context, `128` batch, and `128` generated tokens (batch `128` is the stability winner; batch `64` ties on throughput)
-- `nemotron-mini:4b` reached about `6.53` median eval tok/s at the same hyperparameters (high variance)
-- `glm4:9b` reached about `4.30` median eval tok/s at the same hyperparameters (very stable but slower)
+- `phi3:mini` at `6` threads reached about `13.64` median eval tok/s — the best quality/speed tradeoff tested (only ~12% behind gemma with 1.9x the parameters)
+- `llama3.2:3b` reached about `13.52` median eval tok/s at `12` threads
+- `nemotron-mini:4b` thread-tuned to `8` threads reached about `8.84` median eval tok/s (a 35% improvement over the initial 12-thread result)
+- `glm4:9b` reached about `4.30` median eval tok/s (very stable but memory-bandwidth-bound)
 - direct `llama.cpp` CPU at `8` threads reached about `6.12` gen tok/s
 - direct `llama.cpp` CPU at `10` threads dropped to about `5.47` gen tok/s
 - WSL now has a first valid comparison path through the controlled bridge experiment, with `gemma:2b` reaching about `15.77` median eval tok/s at `12` threads
@@ -31,8 +33,8 @@ On this laptop, the fastest proven safe runtime path is still `native Windows + 
 - fastest compact model measured so far: `gemma:2b`
 - additional tested quants: `qwen35-4b-udiq2m`
 - additional tested models: `nemotron-mini:4b`, `glm4:9b`
-- additional tested models: `nemotron-mini:4b` (`6.53` tok/s — 2.4x slower than gemma), `glm4:9b` (`4.30` tok/s — 3.6x slower)
-- next logical model candidates for this laptop: newer small `Gemma` variants (`gemma2`, `gemma4` compact), `Phi` series (`phi3`, `phi4`), compact `Qwen3.5` variants, and any new `Nemotron` or `MiniMax` releases that fit in `16 GB` RAM
+- additional tested models: `phi3:mini` (`13.64` tok/s at 6 threads — best quality/speed tradeoff), `llama3.2:3b` (`13.52` tok/s), `nemotron-mini:4b` (`8.84` tok/s at 8 threads), `glm4:9b` (`4.30` tok/s)
+- next logical model candidates for this laptop: newer small `Gemma` variants (`gemma2`, `gemma4` compact), `Phi` series (`phi4`), compact `Qwen3.5` variants, and any new small model releases that fit in `16 GB` RAM
 
 ## Machine used so far
 
@@ -301,14 +303,46 @@ Measured takeaway so far:
 
 ## Additional model benchmarks
 
-Beyond the primary Gemma and Qwen targets, this repo now includes throughput measurements for additional local models at the best known Gemma hyperparameters (`12` threads, `2048` ctx, `128` batch, `128` generated tokens):
+Beyond the primary Gemma and Qwen targets, this repo now includes throughput measurements for additional local models:
 
-| Model | Size | Median eval tok/s | Std dev | vs gemma:2b |
-| --- | --- | --- | --- | --- |
-| `nemotron-mini:4b` | 2.7 GB (4B) | `6.53` | `0.98` | 2.4x slower |
-| `glm4:9b` | 5.5 GB (9B) | `4.30` | `0.18` | 3.6x slower |
+### phi3:mini (Microsoft, 3.8B params, ~2.3 GB)
 
-Takeaway: Neither model challenges `gemma:2b` on throughput. `gemma:2b` remains the fastest model measured on this laptop by a wide margin. The `nemotron-mini:4b` run showed unusually high variance (std dev `0.98`), suggesting thermal or scheduling sensitivity.
+| Threads | Median eval tok/s | Std dev | Notes |
+| --- | --- | --- | --- |
+| `6` | `13.64` | `0.10` | **Optimal config** — best quality/speed tradeoff tested |
+| `8` | `13.00` | `0.09` | Stable but slightly slower |
+| `10` | `12.16` | `0.02` | Most stable, slowest |
+| `12` | `13.16` | `0.08` | Default comparison config |
+
+Takeaway: `phi3:mini` at `6` threads reaches `13.64` tok/s — only ~12% behind `gemma:2b` with 1.9x the parameters. This is the **best quality/speed tradeoff** measured so far. Its optimal thread count (`6`) is very different from gemma (`12`), proving that thread tuning is model-specific.
+
+### llama3.2:3b (Meta, 3B params, ~2.0 GB)
+
+| Metric | Value |
+| --- | --- |
+| Median eval tok/s | `13.52` |
+| Std dev | `0.49` |
+| Load time | `~3.3 s` |
+
+Takeaway: Competitive with `phi3:mini` at the same 12-thread config, but with higher variance.
+
+### nemotron-mini:4b (NVIDIA, 4B params, 2.7 GB)
+
+This model is highly sensitive to thread count. A thread sweep found the optimal config:
+
+| Threads | Median eval tok/s | Std dev | Notes |
+| --- | --- | --- | --- |
+| `8` | `8.84` | `0.05` | **Optimal** — 35% faster than the initial 12-thread result |
+| `12` | `6.53` | `0.98` | Initial benchmark — high variance from wrong thread count |
+
+### glm4:9b (THUDM, 9B params, 5.5 GB)
+
+| Metric | Value |
+| --- | --- |
+| Median eval tok/s | `4.30` |
+| Std dev | `0.18` |
+
+Takeaway: Very stable but ~3.6x slower than `gemma:2b`. The 9B size saturates memory bandwidth on this laptop.
 
 ## Qwen quant comparison
 
