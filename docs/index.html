@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Benchmarking Local LLMs on a Windows Laptop, the Careful Way</title>
+<style>
+  :root{
+    --bg: #0f1210;
+    --bg-panel: #151a17;
+    --ink: #dfe6de;
+    --ink-dim: #8fa091;
+    --ink-faint: #5c6b5e;
+    --line: #26302a;
+    --phosphor: #8fe3a1;
+    --phosphor-dim: #4f8a5f;
+    --amber: #e3b567;
+    --red-flag: #d97757;
+    --mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    --serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(143,227,161,0.06), transparent 60%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a{ color: var(--phosphor); text-decoration: none; border-bottom: 1px solid var(--phosphor-dim); }
+  a:hover{ border-bottom-color: var(--phosphor); }
+
+  .wrap{ max-width: 760px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    border-bottom: 1px solid var(--line);
+    padding: 72px 0 40px;
+    position: relative;
+  }
+  .hero::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image: repeating-linear-gradient(to bottom, rgba(143,227,161,0.035) 0px, rgba(143,227,161,0.035) 1px, transparent 1px, transparent 26px);
+    pointer-events:none;
+  }
+  .kicker{
+    font-family: var(--mono);
+    font-size: 12.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--phosphor);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom: 22px;
+  }
+  .kicker .dot{
+    width:7px; height:7px; border-radius:50%;
+    background: var(--phosphor);
+    box-shadow: 0 0 8px 1px rgba(143,227,161,0.7);
+    animation: pulse 2.2s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{ opacity:1; }
+    50%{ opacity:0.35; }
+  }
+  h1{
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 42px;
+    line-height: 1.14;
+    letter-spacing: -0.01em;
+    margin: 0 0 18px;
+    color: #f2f5f0;
+  }
+  .dek{
+    font-size: 19px;
+    color: var(--ink-dim);
+    max-width: 60ch;
+    margin: 0 0 30px;
+  }
+  .byline{
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-faint);
+    display:flex; gap:18px; flex-wrap:wrap;
+  }
+  .byline span{ white-space:nowrap; }
+  .byline b{ color: var(--ink-dim); font-weight:500; }
+
+  /* ---------- READOUT STRIP (signature element) ---------- */
+  .readout{
+    margin: 40px 0 8px;
+    border: 1px solid var(--line);
+    background: var(--bg-panel);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .readout-head{
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--line);
+    display:flex; justify-content:space-between;
+  }
+  .readout-grid{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .readout-cell{
+    padding: 20px 16px;
+    border-right: 1px solid var(--line);
+  }
+  .readout-cell:last-child{ border-right:none; }
+  .readout-label{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+  .readout-value{
+    font-family: var(--mono);
+    font-size: 26px;
+    color: var(--phosphor);
+    font-weight: 600;
+    line-height:1;
+  }
+  .readout-value small{
+    font-size: 13px;
+    color: var(--ink-dim);
+    font-weight:400;
+    margin-left: 4px;
+  }
+  .readout-sub{
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    margin-top: 6px;
+  }
+  .readout-cell.flag .readout-value{ color: var(--amber); font-size:16px; font-weight:500; }
+
+  @media (max-width: 620px){
+    .readout-grid{ grid-template-columns: 1fr; }
+    .readout-cell{ border-right:none; border-bottom:1px solid var(--line); }
+    .readout-cell:last-child{ border-bottom:none; }
+  }
+
+  /* ---------- BODY ---------- */
+  main{ padding: 44px 0 30px; }
+
+  h2{
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--phosphor);
+    margin: 56px 0 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+    display:flex;
+    align-items:baseline;
+    gap: 10px;
+  }
+  h2::before{
+    content: attr(data-tag);
+    color: var(--ink-faint);
+  }
+
+  p{ margin: 0 0 20px; color: var(--ink); }
+  p.lede{ color: var(--ink-dim); }
+
+  strong{ color: #f2f5f0; font-weight: 600; }
+
+  ul, ol{ margin: 0 0 24px; padding-left: 22px; }
+  li{ margin-bottom: 12px; color: var(--ink); }
+  li::marker{ color: var(--phosphor-dim); font-family: var(--mono); font-size: 0.85em; }
+
+  code{
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: rgba(143,227,161,0.09);
+    color: var(--phosphor);
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+
+  /* callout / status blocks */
+  .status{
+    display:flex;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: 4px;
+    margin: 28px 0;
+    border: 1px solid var(--line);
+    background: var(--bg-panel);
+  }
+  .status .tag{
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    height: fit-content;
+    white-space: nowrap;
+    font-weight:600;
+  }
+  .status.ok .tag{ background: rgba(143,227,161,0.12); color: var(--phosphor); border:1px solid var(--phosphor-dim); }
+  .status.open .tag{ background: rgba(227,181,103,0.12); color: var(--amber); border:1px solid #9b7c3f; }
+  .status p{ margin:0; color: var(--ink-dim); font-size: 16px; }
+  .status strong{ color: var(--ink); }
+
+  .rule-box{
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--red-flag);
+    background: var(--bg-panel);
+    padding: 18px 22px;
+    margin: 28px 0;
+    border-radius: 3px;
+  }
+  .rule-box ul{ margin-bottom:0; }
+  .rule-box .rule-title{
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--red-flag);
+    margin-bottom: 12px;
+  }
+
+  .steps{ counter-reset: step; list-style:none; padding-left:0; }
+  .steps li{
+    position: relative;
+    padding-left: 40px;
+    margin-bottom: 20px;
+  }
+  .steps li::before{
+    counter-increment: step;
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--bg);
+    background: var(--phosphor);
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700;
+  }
+
+  blockquote{
+    margin: 32px 0;
+    padding: 4px 0 4px 22px;
+    border-left: 2px solid var(--phosphor-dim);
+    color: var(--ink-dim);
+    font-style: italic;
+    font-size: 18px;
+  }
+
+  .cta{
+    margin-top: 54px;
+    padding: 28px 24px;
+    border: 1px solid var(--phosphor-dim);
+    border-radius: 6px;
+    background: linear-gradient(180deg, rgba(143,227,161,0.06), transparent);
+    text-align:center;
+  }
+  .cta p{ margin: 0 0 14px; color: var(--ink-dim); font-family: var(--mono); font-size:14px; letter-spacing:0.02em; }
+  .cta a{
+    font-family: var(--mono);
+    font-size: 15px;
+    color: var(--bg);
+    background: var(--phosphor);
+    border: none;
+    padding: 11px 20px;
+    border-radius: 4px;
+    display:inline-block;
+    font-weight:600;
+  }
+  .cta a:hover{ background:#a5f0b4; }
+
+  footer{
+    border-top: 1px solid var(--line);
+    padding: 26px 0 60px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-faint);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+
+  @media (max-width: 560px){
+    body{ font-size:16.5px; }
+    h1{ font-size: 30px; }
+    .dek{ font-size:17px; }
+    .hero{ padding-top: 48px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="kicker"><span class="dot"></span>LAB NOTEBOOK &middot; LOCAL INFERENCE</div>
+    <h1>Benchmarking Local LLMs on a Windows Laptop, the Careful Way</h1>
+    <p class="dek">A review of <strong>windows-local-llm-lab</strong> — a PowerShell benchmarking rig for Ollama, llama.cpp, WSL, and Vulkan that treats throughput tuning like a real experiment instead of a guessing game.</p>
+    <div class="byline">
+      <span><b>Subject:</b> manishklach/windows-local-llm-lab</span>
+      <span><b>Hardware:</b> Ryzen 3 5300U &middot; 4C/8T &middot; 16GB</span>
+      <span><b>Status:</b> active lab, two tracks open</span>
+    </div>
+  </header>
+
+  <div class="readout">
+    <div class="readout-head">
+      <span>REFERENCE RUN &mdash; SAFE SWEEP</span>
+      <span>qwen35-4b-q4km</span>
+    </div>
+    <div class="readout-grid">
+      <div class="readout-cell">
+        <div class="readout-label">Best eval throughput</div>
+        <div class="readout-value">7.62<small>tok/s median</small></div>
+        <div class="readout-sub">6 threads &middot; 1024 ctx &middot; batch 64</div>
+      </div>
+      <div class="readout-cell">
+        <div class="readout-label">gemma:2b peak</div>
+        <div class="readout-value">16.00<small>tok/s median</small></div>
+        <div class="readout-sub">12 threads &middot; 2048 ctx &middot; batch 128</div>
+      </div>
+      <div class="readout-cell flag">
+        <div class="readout-label">Open blockers</div>
+        <div class="readout-value">WSL link &middot; Vulkan device</div>
+        <div class="readout-sub">not yet reachable / not yet detected</div>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <p class="lede">If you've ever tried to squeeze more tokens per second out of a local LLM on a Windows laptop, you know how noisy the process usually is: change a setting, run once, eyeball the number, repeat. <a href="https://github.com/manishklach/windows-local-llm-lab" target="_blank" rel="noopener">windows-local-llm-lab</a> takes the opposite approach — warmups, repeated runs, standard deviation, and a hard rule that nothing is allowed to cook the laptop in the name of a few extra tokens per second.</p>
+
+    <p>It's a PowerShell-only repo built around Ollama on native Windows, with parallel tracks exploring <code>llama.cpp</code> directly and WSL. What stands out is how honest it is about what's actually been proven versus what's still an open question.</p>
+
+    <h2 data-tag="01 /">The setup</h2>
+    <p>All numbers so far come from one clearly documented machine — a modest, CPU-bound laptop, not a workstation with a discrete GPU. That's exactly why the tuning questions matter here: every thread, context length, and batch size choice has a real, measurable effect.</p>
+    <ul>
+      <li><strong>CPU</strong> — AMD Ryzen 3 5300U, 4 cores / 8 threads</li>
+      <li><strong>Memory</strong> — 16 GB RAM</li>
+      <li><strong>Graphics</strong> — Integrated AMD Radeon Graphics</li>
+      <li><strong>OS / runtime</strong> — Windows 11, Ollama 0.30.11</li>
+    </ul>
+
+    <h2 data-tag="02 /">What's been proven</h2>
+    <p>The README leads with a "current conclusion" section — a nice pattern in itself, since you don't have to dig through scripts to find out what actually works.</p>
+    <ul>
+      <li>Native Windows + Ollama remains the fastest <strong>safe, proven</strong> path on this hardware.</li>
+      <li>The best validated sweep cell lands at <strong>7.62 median eval tok/s</strong> — 6 threads, 1024 context, batch 64, on the <code>qwen35-4b-q4km</code> reference model.</li>
+      <li><code>gemma:2b</code> tops out around <strong>16.00 median eval tok/s</strong> at 12 threads — a clean illustration of how much model size alone dominates throughput on constrained hardware.</li>
+      <li>A direct <code>llama.cpp</code> CPU run at 8 threads hit ~6.12 gen tok/s; pushing to 10 threads <em>regressed</em> to 5.47 — oversubscription hurting a 4-core chip once it passes its physical core count.</li>
+    </ul>
+    <blockquote>More threads is not automatically more speed. On a 4-core/8-thread part, the lab's own data puts the sweet spot around 6–12 threads — logical SMT threads don't add real compute, they just add scheduling overhead.</blockquote>
+
+    <h2 data-tag="03 /">What's still open</h2>
+    <p>To its credit, the lab doesn't paper over its unresolved threads:</p>
+
+    <div class="status open">
+      <span class="tag">OPEN</span>
+      <p><strong>WSL connectivity</strong> — WSL itself is healthy, but the Windows-hosted Ollama API isn't currently reachable from inside it, so there are no valid WSL-vs-native numbers yet.</p>
+    </div>
+    <div class="status open">
+      <span class="tag">OPEN</span>
+      <p><strong>Vulkan</strong> — <code>llama-bench</code> doesn't currently see an available Vulkan device, so the integrated GPU path — likely the single biggest untapped throughput lever here — hasn't been benchmarked at all.</p>
+    </div>
+
+    <p>Both are flagged plainly as blockers rather than glossed over — exactly what you want from a benchmarking repo: a clear line between "measured" and "not yet possible to measure."</p>
+
+    <h2 data-tag="04 /">Safety as a first-class citizen</h2>
+    <p>A lot of local-LLM tuning content quietly assumes you're fine running unstable overclocks or maxing out every setting to chase a benchmark win. This repo goes the other way, with explicit rules baked into the scripts themselves:</p>
+
+    <div class="rule-box">
+      <div class="rule-title">Hard rules</div>
+      <ul>
+        <li>No Realtime process priority</li>
+        <li>No disabling thermal protections</li>
+        <li>No benchmarking on battery — stay plugged in</li>
+        <li>Laptop on a hard surface (airflow matters)</li>
+        <li>Stop immediately if the machine reboots repeatedly</li>
+        <li>Prefer 128–256 generated tokens for real measurements; short runs are smoke tests only</li>
+      </ul>
+    </div>
+
+    <p>The <code>enter-max-perf-mode.ps1</code> / <code>exit-max-perf-mode.ps1</code> pairing is a particularly nice touch — whatever tuning gets applied for a benchmark run is fully reversible afterward, rather than leaving the system in some semi-optimized state you forget about a week later.</p>
+
+    <h2 data-tag="05 /">Boosting throughput on hardware like this</h2>
+    <p>Pulling together the lab's own measured takeaways, in order of expected impact:</p>
+    <ol class="steps">
+      <li><strong>Cap threads near your physical core count, not your logical one.</strong> 6–12 threads outperforms 16 or 32 every time in this data — oversubscription is a real, measurable tax on CPU-bound decode.</li>
+      <li><strong>Model size still wins big.</strong> <code>gemma:2b</code> more than doubled the throughput of the 4B reference model. If your task tolerates a smaller model, that's a bigger lever than any thread or batch tweak.</li>
+      <li><strong>Keep context length only as large as you need.</strong> Shorter-context results were consistently competitive with or faster than longer ones — every extra token of context eats memory bandwidth that could go toward generation.</li>
+      <li><strong>Chase the still-unproven Vulkan path.</strong> For integrated-GPU laptops, offloading matmuls to the iGPU is usually the single biggest available throughput jump once device visibility is sorted out.</li>
+      <li><strong>Measure, don't guess.</strong> Multiple runs, warmups, and reported standard deviation are what make any of the above conclusions trustworthy. A single benchmark run on a laptop is basically noise.</li>
+    </ol>
+
+    <h2 data-tag="06 /">Why it's worth a look</h2>
+    <p>This isn't trying to be a definitive local-LLM leaderboard — it's a working lab notebook for one specific laptop, with the discipline to admit what hasn't been figured out yet. That's more useful than a polished-looking benchmark chart with no methodology behind it. If you're tuning local inference on similar Windows hardware, the <code>tools/</code> scripts and the safe-sweep pattern are a solid fork-and-point starting point for your own machine.</p>
+
+    <div class="cta">
+      <p>&gt; git clone windows-local-llm-lab.git</p>
+      <a href="https://github.com/manishklach/windows-local-llm-lab" target="_blank" rel="noopener">View the repository on GitHub</a>
+    </div>
+  </main>
+
+  <footer>
+    <span>windows-local-llm-lab &middot; review &amp; write-up</span>
+    <span>github.com/manishklach/windows-local-llm-lab</span>
+  </footer>
+</div>
+
+</body>
+</html>
