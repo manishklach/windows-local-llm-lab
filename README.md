@@ -154,7 +154,8 @@ For a reversible, scoped Windows-hosted API experiment, use the controlled bridg
 Measured takeaway so far:
 
 - WSL itself is healthy on this machine
-- we do not yet have valid WSL throughput numbers because the host Ollama API is not reachable from WSL by default
+- with the controlled bridge enabled and the explicit endpoint `http://172.26.208.1:11434`, `gemma:2b` reached about `15.77` median eval tok/s from `WSL2` at `12` threads, `2048` context, `128` batch, and `64` generated tokens
+- that is very close to the current native Windows short-sample Gemma best of about `16.00` eval tok/s on the same laptop
 
 Compare the native Windows CSV against the WSL CSV:
 

@@ -4,4 +4,5 @@
 *.log
 results-local/
 .llm-maxperf-state.json
+.wsl-ollama-bridge-state.json
 .DS_Store

@@ -84,7 +84,16 @@ Not benchmark-ready yet on this Windows install.
 
 ### WSL
 
-WSL itself is healthy, but the current Windows-hosted Ollama endpoint is not yet reachable from WSL with the present setup, so no valid Windows-vs-WSL throughput comparison is published yet.
+WSL itself is healthy, and the repo now has a controlled bridge workflow for testing the Windows-hosted Ollama API from WSL.
+
+First valid comparison point:
+
+- `WSL2 -> Windows Ollama`, `gemma:2b`, `12` threads, `2048` context, `128` batch, `64` generated tokens: about `15.77` median eval tok/s
+
+Takeaway:
+
+- this is very close to the native Windows short-sample Gemma best of about `16.00` eval tok/s on the same laptop
+- WSL still needs the controlled bridge workflow or explicit reachable endpoint; it does not work by default on this machine
 
 ## Safety model
 

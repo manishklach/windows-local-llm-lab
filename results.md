@@ -131,12 +131,19 @@ Current status on this laptop:
 - `WSL2` is installed and healthy
 - default distro is `Ubuntu-24.04`
 - Python and curl are available inside WSL
-- current Windows-hosted Ollama endpoint is **not** reachable from WSL with the present setup
+- current Windows-hosted Ollama endpoint is **not** reachable from WSL by default
+
+Controlled bridge result:
+
+| Runtime | Model | Threads | NumCtx | NumBatch | NumPredict | Median eval tok/s | Avg eval tok/s | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `WSL2 -> Windows Ollama` | `gemma:2b` | `12` | `2048` | `128` | `64` | `15.77` | `15.77` | uses explicit endpoint `http://172.26.208.1:11434` with the controlled WSL bridge enabled |
 
 Conclusion:
 
-- we do not yet have a valid WSL-vs-Windows throughput comparison
-- to continue, either expose a reachable Ollama endpoint to WSL or run Ollama inside WSL
+- the repo now has a first valid WSL-vs-Windows comparison point for `gemma:2b`
+- this first `WSL2 -> Windows Ollama` result is very close to the native Windows short-sample Gemma result of about `16.00` eval tok/s
+- the Windows-hosted endpoint still needs the controlled bridge workflow or an explicit reachable endpoint; it is not reachable from WSL by default
 
 ## Best known safe config
 
@@ -169,5 +176,5 @@ Conclusion:
 - Background Ollama pulls can interfere with measurements and leave partial blobs behind.
 - Safe session tuning improved load time and benchmark hygiene more than raw generation throughput.
 - Oversubscribing the CPU to `10` threads in direct `llama.cpp` reduced generation tok/s.
-- WSL connectivity to the Windows Ollama API is not working by default on this machine.
+- WSL connectivity to the Windows Ollama API is not working by default on this machine; the first valid comparison required the controlled bridge workflow and explicit endpoint `http://172.26.208.1:11434`.
 - Vulkan backend/device discovery is not working yet in the current Windows environment.

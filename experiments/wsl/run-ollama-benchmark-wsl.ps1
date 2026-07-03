@@ -171,12 +171,11 @@ print(json.dumps(records), flush=True)
 print("JSON_RESULT_END", flush=True)
 "@
 
-$bashScriptPath = "/tmp/qwen_windows_tps_lab_wsl_bench.py"
-& wsl.exe -d $Distro -- bash -lc "cat > $bashScriptPath <<'PY'
-$pythonScript
-PY"
+$tempPyPath = Join-Path $env:TEMP "qwen_windows_tps_lab_wsl_bench_$stamp.py"
+$pythonScript | Set-Content -Path $tempPyPath
+$wslPyPath = Convert-WindowsPathToWslPath -Path $tempPyPath
 
-$rawOutput = & wsl.exe -d $Distro -- python3 $bashScriptPath $wslConfigPath 2>&1
+$rawOutput = & wsl.exe -d $Distro -- python3 $wslPyPath $wslConfigPath 2>&1
 $cleanOutput = (($rawOutput | Out-String) -replace "`0", '').Trim()
 Write-Host $cleanOutput
 
@@ -219,6 +218,7 @@ $summary = @(
 $summary | Set-Content -Path $summaryPath
 
 Remove-Item -LiteralPath $configPath -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $tempPyPath -Force -ErrorAction SilentlyContinue
 
 Write-Host ''
 Write-Host 'WSL benchmark summary'
