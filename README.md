@@ -39,6 +39,98 @@ On this laptop, the fastest proven safe runtime path is still `native Windows + 
 - Windows: `11`
 - Ollama: `0.30.11`
 
+## Quick start for another Windows user
+
+If you just want to download this repo and run a benchmark on your own Windows laptop, use this path.
+
+1. Clone the repo:
+
+```powershell
+git clone https://github.com/manishklach/windows-local-llm-lab.git
+cd windows-local-llm-lab
+```
+
+2. Install Ollama for Windows if you do not already have it:
+
+- download from [ollama.com/download/windows](https://ollama.com/download/windows)
+- after install, confirm it works:
+
+```powershell
+ollama --version
+```
+
+3. Pull a public test model.
+
+Fastest simple starter:
+
+```powershell
+ollama pull gemma:2b
+```
+
+Qwen throughput candidate tested in this repo:
+
+```powershell
+ollama pull hf.co/unsloth/Qwen3.5-4B-GGUF:IQ4_XS
+```
+
+4. Run the preflight safety and readiness check:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\preflight-llm-benchmark.ps1 -RequireAC -Model gemma:2b
+```
+
+5. Enter the reversible max-performance benchmark mode:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\enter-max-perf-mode.ps1 -UseUltimatePerformance -StopPulls -NoSleep -OllamaPriority High
+```
+
+6. Run one direct benchmark:
+
+For `gemma:2b`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\measure-ollama-tps-safe.ps1 -Model gemma:2b -Runs 3 -WarmupRuns 1 -NumPredict 64 -NumThread 12 -NumCtx 2048 -NumBatch 128
+```
+
+For the tested `IQ4_XS` Qwen path:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\measure-ollama-tps-safe.ps1 -Model hf.co/unsloth/Qwen3.5-4B-GGUF:IQ4_XS -Runs 3 -WarmupRuns 1 -NumPredict 128 -NumThread 12 -NumCtx 1024 -NumBatch 64
+```
+
+7. Restore normal desktop settings when you are done:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\exit-max-perf-mode.ps1 -DeleteStateAfterRestore
+```
+
+Results are written under `results-local\` as:
+
+- `.csv` for spreadsheet analysis
+- `.jsonl` for machine-readable records
+- `-summary.md` for the quick human-readable result
+
+## Reproducible benchmark recipes
+
+Use these if you want a quick apples-to-apples comparison against the main tested paths in this repo.
+
+`gemma:2b` compact throughput recipe:
+
+```powershell
+ollama pull gemma:2b
+powershell -ExecutionPolicy Bypass -File .\tools\preflight-llm-benchmark.ps1 -RequireAC -Model gemma:2b
+powershell -ExecutionPolicy Bypass -File .\measure-ollama-tps-safe.ps1 -Model gemma:2b -Runs 3 -WarmupRuns 1 -NumPredict 64 -NumThread 12 -NumCtx 2048 -NumBatch 128
+```
+
+`Qwen3.5-4B IQ4_XS` throughput recipe:
+
+```powershell
+ollama pull hf.co/unsloth/Qwen3.5-4B-GGUF:IQ4_XS
+powershell -ExecutionPolicy Bypass -File .\tools\preflight-llm-benchmark.ps1 -RequireAC -Model hf.co/unsloth/Qwen3.5-4B-GGUF:IQ4_XS
+powershell -ExecutionPolicy Bypass -File .\measure-ollama-tps-safe.ps1 -Model hf.co/unsloth/Qwen3.5-4B-GGUF:IQ4_XS -Runs 3 -WarmupRuns 1 -NumPredict 128 -NumThread 12 -NumCtx 1024 -NumBatch 64
+```
+
 ## Model setup example
 
 The current reference baseline in this repo uses `qwen35-4b-q4km`, but the benchmark scripts are generic and can be pointed at any local Ollama model or GGUF path.
