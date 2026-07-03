@@ -31,6 +31,8 @@ if (-not (Test-Path -LiteralPath $resolvedOutDir)) {
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $jsonPath = Join-Path $resolvedOutDir "llama-bench-cpu-$stamp.json"
 $logPath = Join-Path $resolvedOutDir "llama-bench-cpu-$stamp.log"
+$stdoutPath = Join-Path $resolvedOutDir "llama-bench-cpu-$stamp.stdout.tmp"
+$stderrPath = Join-Path $resolvedOutDir "llama-bench-cpu-$stamp.stderr.tmp"
 
 $args = @(
     '-m', $ModelPath,
@@ -42,10 +44,25 @@ $args = @(
     '-o', 'json'
 )
 
-$output = & $LlamaBenchPath @args 2>&1
-$output | Tee-Object -FilePath $logPath | Out-Null
-$text = $output | Out-String
-$text | Set-Content -Path $jsonPath
+$process = Start-Process -FilePath $LlamaBenchPath `
+    -ArgumentList $args `
+    -PassThru `
+    -NoNewWindow `
+    -Wait `
+    -RedirectStandardOutput $stdoutPath `
+    -RedirectStandardError $stderrPath
+
+$stdoutText = if (Test-Path -LiteralPath $stdoutPath) { Get-Content -Raw $stdoutPath } else { '' }
+$stderrText = if (Test-Path -LiteralPath $stderrPath) { Get-Content -Raw $stderrPath } else { '' }
+$text = ($stdoutText, $stderrText -join [Environment]::NewLine).Trim()
+$text | Set-Content -Path $logPath
+$stdoutText | Set-Content -Path $jsonPath
+
+Remove-Item -LiteralPath $stdoutPath, $stderrPath -Force -ErrorAction SilentlyContinue
+
+if ($process.ExitCode -ne 0) {
+    throw "llama-bench exited with code $($process.ExitCode). See $logPath"
+}
 
 Write-Host ''
 Write-Host "CPU llama-bench JSON saved to $jsonPath"
