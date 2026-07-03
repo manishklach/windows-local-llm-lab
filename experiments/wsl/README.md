@@ -39,3 +39,10 @@ Then compare the Windows CSV from `measure-ollama-tps-safe.ps1` against the WSL 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\compare-runtime-results.ps1 -PrimaryCsv .\results-local\measure-qwen35-4b-q4km-<windows>.csv -SecondaryCsv .\results-local\wsl-ollama-qwen35-4b-q4km-<wsl>.csv
 ```
+
+## Findings so far on this laptop
+
+- `WSL2` is installed and healthy, with `Ubuntu-24.04` available.
+- Python and curl are available inside WSL.
+- The current Windows-hosted Ollama endpoint is not reachable from WSL by default on this machine.
+- That means the repo can verify WSL readiness, but a real WSL-vs-Windows throughput comparison still requires either a reachable `-OllamaEndpoint` or a WSL-hosted Ollama runtime.

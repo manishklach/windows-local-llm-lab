@@ -4,6 +4,16 @@ Safe, reversible Windows laptop benchmarking for local LLM throughput with Ollam
 
 The stable baseline in this repo is native Windows plus Ollama. The goal is to improve tokens-per-second with repeatable measurements, not random tweaks.
 
+## Current conclusion
+
+On this laptop, the fastest proven safe path is still `native Windows + Ollama + qwen35-4b-q4km`.
+
+- best validated safe Ollama sweep cell so far: about `7.62` median eval tok/s at `6` threads, `1024` context, `64` batch
+- direct `llama.cpp` CPU at `8` threads reached about `6.12` gen tok/s
+- direct `llama.cpp` CPU at `10` threads dropped to about `5.47` gen tok/s
+- WSL is installed, but the current Windows Ollama endpoint is not reachable from WSL yet
+- Vulkan is not ready yet because `llama-bench` currently sees no available device on this Windows setup
+
 ## Repo contents
 
 - safe preflight, tuning, and restore scripts under `tools/`
@@ -78,6 +88,12 @@ Vulkan:
 powershell -ExecutionPolicy Bypass -File .\experiments\llamacpp-vulkan\run-llama-bench-vulkan.ps1 -LlamaBenchPath C:\path\to\llama-bench.exe -ModelPath C:\path\to\qwen35-4b-q4km.gguf -Threads 8 -PromptTokens 512 -GenerateTokens 128 -BatchSize 128 -Repetitions 3 -GpuLayers 999
 ```
 
+Measured takeaway so far:
+
+- use `8` threads, not `10`, for generation on this `4C/8T` CPU
+- current direct `llama.cpp` CPU numbers do not beat the better Ollama numbers on this machine
+- Vulkan still needs backend/device visibility fixed before it can be tested honestly
+
 ## WSL comparison track
 
 WSL readiness:
@@ -96,6 +112,11 @@ If the readiness script says `WindowsOllamaFromWSL=False`, this laptop is not cu
 
 - point the WSL runner at a reachable endpoint with `-OllamaEndpoint http://<host>:11434`
 - or install and run Ollama inside WSL for a true Linux-side comparison
+
+Measured takeaway so far:
+
+- WSL itself is healthy on this machine
+- we do not yet have valid WSL throughput numbers because the host Ollama API is not reachable from WSL by default
 
 Compare the native Windows CSV against the WSL CSV:
 

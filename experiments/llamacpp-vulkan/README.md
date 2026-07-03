@@ -33,3 +33,10 @@ powershell -ExecutionPolicy Bypass -File .\experiments\llamacpp-vulkan\run-llama
 Both scripts request JSON output from `llama-bench` and also save a raw log so you can diff CPU and Vulkan runs later.
 
 Compare the logged tokens-per-second numbers against the safe Ollama baseline in [results.md](../../results.md), then use [compare-runtime-results.ps1](../../compare-runtime-results.ps1) for Windows vs WSL CSV comparisons.
+
+## Findings so far on this laptop
+
+- Direct `llama.cpp` CPU at `8` threads measured about `6.12` gen tok/s on `qwen35-4b-q4km.gguf`.
+- Direct `llama.cpp` CPU at `10` threads measured about `5.47` gen tok/s, so oversubscribing this `4C/8T` CPU hurt generation throughput.
+- Prompt processing improved at `10` threads, but generation throughput is the more important metric for chat-style local inference.
+- `llama-bench --list-devices` currently reports `Available devices: (none)` here, so Vulkan is not benchmark-ready yet.
