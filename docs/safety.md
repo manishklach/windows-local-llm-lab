@@ -21,6 +21,7 @@ This repo is for squeezing more local LLM throughput out of a Windows laptop wit
 - Disabling thermal throttling or thermal protections.
 - Disabling Windows Defender globally.
 - Killing unrelated user processes just because they use CPU.
+- Broadly exposing the Ollama API to every network as a permanent default.
 
 ## Operating envelope
 
@@ -32,3 +33,12 @@ This repo is for squeezing more local LLM throughput out of a Windows laptop wit
 ## Reversible tuning
 
 Every script in `tools/` is designed to save or infer the prior state before applying changes, and to restore the machine with `.\tools\exit-max-perf-mode.ps1`.
+
+## Network exposure experiments
+
+If you test `WSL` access to the Windows-hosted Ollama API, treat it as a reversible experiment:
+
+- prefer a scoped Windows Firewall rule over broad inbound access
+- prefer WSL-subnet-only scope over `Any`
+- restart Ollama only long enough to run the comparison
+- restore the prior host binding and remove the firewall rule after the test

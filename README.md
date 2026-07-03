@@ -149,6 +149,8 @@ If the readiness script says `WindowsOllamaFromWSL=False`, this laptop is not cu
 - point the WSL runner at a reachable endpoint with `-OllamaEndpoint http://<host>:11434`
 - or install and run Ollama inside WSL for a true Linux-side comparison
 
+For a reversible, scoped Windows-hosted API experiment, use the controlled bridge workflow documented in [experiments/wsl/README.md](./experiments/wsl/README.md) instead of permanently exposing Ollama broadly.
+
 Measured takeaway so far:
 
 - WSL itself is healthy on this machine
