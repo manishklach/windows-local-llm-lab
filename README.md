@@ -9,7 +9,7 @@ The stable baseline in this repo is native Windows plus Ollama. The goal is to i
 On this laptop, the fastest proven safe runtime path is still `native Windows + Ollama`.
 
 - best validated safe Ollama sweep cell so far: about `7.62` median eval tok/s at `6` threads, `1024` context, `64` batch
-- fastest compact model measured so far: `gemma:2b` at about `15.35` median eval tok/s with `10` threads, `2048` context, `128` batch, and `64` generated tokens
+- fastest compact model measured so far: `gemma:2b` at about `16.00` median eval tok/s with `12` threads, `2048` context, `128` batch, and `64` generated tokens
 - direct `llama.cpp` CPU at `8` threads reached about `6.12` gen tok/s
 - direct `llama.cpp` CPU at `10` threads dropped to about `5.47` gen tok/s
 - WSL is installed, but the current Windows Ollama endpoint is not reachable from WSL yet
@@ -108,16 +108,20 @@ Measured takeaway so far:
 
 Safe `gemma:2b` checks on the same laptop with `64` generated tokens, `2048` context, and `128` batch:
 
-| Model | Threads | Median eval tok/s | Avg eval tok/s | Std dev | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `gemma:2b` | `6` | `14.05` | `14.05` | `0.97` | higher variance on the short two-run sample |
-| `gemma:2b` | `8` | `14.78` | `14.78` | `0.03` | very stable |
-| `gemma:2b` | `10` | `15.35` | `15.35` | `0.29` | best short Gemma result so far |
+| Model | Threads | NumCtx | Median eval tok/s | Avg eval tok/s | Std dev | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `gemma:2b` | `6` | `2048` | `14.05` | `14.05` | `0.97` | higher variance on the short two-run sample |
+| `gemma:2b` | `8` | `2048` | `14.78` | `14.78` | `0.03` | very stable |
+| `gemma:2b` | `10` | `2048` | `15.35` | `15.35` | `0.29` | first strong Gemma result |
+| `gemma:2b` | `12` | `1024` | `15.48` | `15.48` | `0.30` | slightly behind the best ctx setting |
+| `gemma:2b` | `12` | `2048` | `16.00` | `16.00` | `0.58` | best short Gemma result so far |
+| `gemma:2b` | `12` | `4096` | `15.93` | `15.93` | `0.06` | nearly tied with `2048`, very stable |
 
 Measured takeaway so far:
 
 - `gemma:2b` is much faster than the current `qwen35-4b-q4km` baseline on this laptop for decode throughput
-- unlike the direct `llama.cpp` Qwen CPU test, `10` threads slightly beat `8` threads for this smaller Gemma model
+- on this short safe sample, `12` threads slightly beat both `10` and `8` threads for `gemma:2b`
+- `2048` context is the current best Gemma setting, but `4096` is very close and more stable than the short `2048` sample
 - this is a throughput result, not a quality ranking; `qwen35-4b-q4km` remains the current reference model in this repo for broader comparisons
 
 ## WSL comparison track

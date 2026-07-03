@@ -74,12 +74,16 @@ Short safe Gemma comparison using the newer harness and longer `64` token decode
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `gemma:2b` | `6` | `2048` | `128` | `14.05` | `14.05` | `0.97` | short two-run sample, more variance |
 | `gemma:2b` | `8` | `2048` | `128` | `14.78` | `14.78` | `0.03` | very stable short sample |
-| `gemma:2b` | `10` | `2048` | `128` | `15.35` | `15.35` | `0.29` | best short Gemma result so far |
+| `gemma:2b` | `10` | `2048` | `128` | `15.35` | `15.35` | `0.29` | first strong Gemma result |
+| `gemma:2b` | `12` | `1024` | `128` | `15.48` | `15.48` | `0.30` | slightly behind the best ctx setting |
+| `gemma:2b` | `12` | `2048` | `128` | `16.00` | `16.00` | `0.58` | best short Gemma result so far |
+| `gemma:2b` | `12` | `4096` | `128` | `15.93` | `15.93` | `0.06` | nearly tied with `2048` and very stable |
 
 Takeaway:
 
 - `gemma:2b` is the fastest compact model measured so far on this laptop.
-- On Gemma, `10` threads slightly beat `8`, which is a different pattern from the direct `llama.cpp` Qwen CPU run.
+- On Gemma, `12` threads slightly beat both `10` and `8`, which is a different pattern from the direct `llama.cpp` Qwen CPU run.
+- For this laptop, `num_ctx=2048` is the current best Gemma setting, while `4096` is close enough that it may be the safer default when a larger window is useful.
 - This is a throughput finding only; it does not mean `gemma:2b` is the best overall quality model.
 
 ## llama.cpp direct benchmark
@@ -128,7 +132,8 @@ Conclusion:
 - Runtime: native Windows with Ollama
 - Fastest compact throughput model: `gemma:2b`
 - Reference comparison model: `qwen35-4b-q4km`
-- Threads: `10` currently leads for `gemma:2b` in the short safe sample, while `6-8` remains the better tested range for `qwen35-4b-q4km`
+- Threads: `12` currently leads for `gemma:2b` in the short safe sample, while `6-8` remains the better tested range for `qwen35-4b-q4km`
+- Gemma context: `2048` currently leads, with `4096` nearly tied
 - Power mode: `High performance`
 - AC processor min and max: `100%`
 - Ollama priority: `High`
