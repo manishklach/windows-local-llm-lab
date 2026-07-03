@@ -1,0 +1,4 @@
+*.gguf
+*.log
+results-local/
+.DS_Store

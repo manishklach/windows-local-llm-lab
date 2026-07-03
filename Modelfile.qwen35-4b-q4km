@@ -1,0 +1,5 @@
+FROM ./qwen35-4b-q4km.gguf
+
+PARAMETER temperature 0
+
+TEMPLATE """{{ .Prompt }}"""
