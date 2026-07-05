@@ -24,6 +24,7 @@ On this laptop, the fastest proven safe runtime path is still `native Windows + 
 - safe preflight, tuning, and restore scripts under `tools/`
 - safe Ollama benchmark wrappers in the repo root
 - experiment scaffolding for `llama.cpp` Vulkan under `experiments/`
+- experimental notes for `vLLM` under `experiments/vllm/`
 - WSL comparison helpers for Linux-first runtime experiments
 - results and methodology docs for tracking what actually helps
 
@@ -183,6 +184,25 @@ Practical recommendation:
 
 - benchmark raw model speed with `measure-ollama-tps-safe.ps1`, `compare-models-safe.ps1`, and `sweep-ollama-options-safe.ps1`
 - separately smoke-test `codex --oss` with the same local model to decide whether the model is good enough for real coding help
+
+## vLLM on this laptop
+
+`vLLM` is possible here only as an experimental WSL-first path.
+
+Current local status:
+
+- `vLLM` does not have a native Windows path that fits this repo's intended workflow
+- WSL2 is healthy on this machine
+- WSL currently sees about `7.8 GB` RAM
+- Docker exists on Windows, but Docker Desktop WSL integration is not enabled in the distro right now
+- this laptop does not have an NVIDIA CUDA GPU
+
+Practical takeaway:
+
+- `vLLM` is more realistic here as a small-model serving experiment than as a likely raw tok/s upgrade
+- for compact single-user local inference, native Windows + Ollama remains the better default path on this machine
+
+See [experiments/vllm/README.md](./experiments/vllm/README.md) for the current recommendation and constraints.
 
 ## Model setup example
 
