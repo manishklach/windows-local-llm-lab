@@ -20,7 +20,8 @@ Observed local constraints on this laptop:
 - WSL2 is installed and healthy
 - default distro: `Ubuntu-24.04`
 - WSL currently sees about `7.8 GB` RAM
-- Docker is installed on Windows, but Docker Desktop WSL integration is not enabled inside the distro right now
+- Docker Desktop is installed on Windows
+- Docker-in-WSL now works inside `Ubuntu-24.04`
 - GPU: AMD integrated graphics, not an NVIDIA CUDA setup
 
 Practical implication:
@@ -61,11 +62,19 @@ Avoid starting with:
 
 ## What must be fixed first
 
-Before a Docker-based `vLLM` path is practical in WSL on this laptop:
+Before a real `vLLM` path is practical in WSL on this laptop:
 
-1. Enable Docker Desktop WSL integration for `Ubuntu-24.04`.
-2. Re-check available memory inside WSL.
+1. Re-check available memory inside WSL.
+2. Decide whether building `vLLM` CPU from source is worth the time on this machine.
 3. Confirm a tiny Linux-side model server can start reliably before trying larger models.
+
+Current smoke status:
+
+- `docker --version` works inside `Ubuntu-24.04`
+- `docker info` works inside `Ubuntu-24.04`
+- `docker run --rm hello-world` completed successfully from WSL
+
+That means the Docker + WSL bridge is healthy now. The remaining blocker is no longer Docker integration; it is whether `vLLM` itself is worth building and running on a small-memory CPU-only path.
 
 ## Suggested evaluation criteria
 
@@ -89,4 +98,4 @@ For this hardware:
 
 - use Ollama plus the existing benchmark scripts for raw throughput work
 - use `vLLM` only as an optional WSL experiment track
-- defer deeper `vLLM` tuning unless Docker WSL integration is enabled and the memory budget in WSL is improved
+- defer deeper `vLLM` tuning unless the memory budget in WSL is improved and a CPU build is worth the setup cost

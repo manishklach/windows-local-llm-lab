@@ -194,7 +194,7 @@ Current local status:
 - `vLLM` does not have a native Windows path that fits this repo's intended workflow
 - WSL2 is healthy on this machine
 - WSL currently sees about `7.8 GB` RAM
-- Docker exists on Windows, but Docker Desktop WSL integration is not enabled in the distro right now
+- Docker Desktop is installed and WSL-side Docker smoke tests are now working in `Ubuntu-24.04`
 - this laptop does not have an NVIDIA CUDA GPU
 
 Practical takeaway:
